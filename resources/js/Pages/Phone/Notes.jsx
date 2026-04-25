@@ -1,0 +1,296 @@
+import { useState, useEffect } from "react";
+import { Head, router } from "@inertiajs/react";
+
+const BackIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-9 h-9">
+        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" />
+    </svg>
+);
+const PlusIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+    </svg>
+);
+const TrashIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+    </svg>
+);
+const EditIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+    </svg>
+);
+
+const SK = "qumra_notes";
+const load = () => { try { return JSON.parse(localStorage.getItem(SK)) ?? []; } catch { return []; } };
+const save = (v) => { try { localStorage.setItem(SK, JSON.stringify(v)); } catch {} };
+
+const COLORS = [
+    { bg: "#fff9f0", border: "#f59e0b", dot: "#f59e0b" },
+    { bg: "#f0fdf4", border: "#22c55e", dot: "#22c55e" },
+    { bg: "#eff6ff", border: "#3b82f6", dot: "#3b82f6" },
+    { bg: "#fdf4ff", border: "#a855f7", dot: "#a855f7" },
+    { bg: "#fff1f2", border: "#f43f5e", dot: "#f43f5e" },
+    { bg: "#f0fdfa", border: "#14b8a6", dot: "#14b8a6" },
+];
+
+const formatDate = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
+};
+
+export default function Notes() {
+    const [notes, setNotes] = useState(load);
+    const [modal, setModal] = useState(null); // null | "add" | "edit" | "view"
+    const [active, setActive] = useState(null);
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+    const [colorIdx, setColorIdx] = useState(0);
+    const [search, setSearch] = useState("");
+    const [confirmDel, setConfirmDel] = useState(null);
+
+    useEffect(() => { save(notes); }, [notes]);
+
+    const openAdd = () => {
+        setTitle(""); setContent(""); setColorIdx(0);
+        setActive(null); setModal("add");
+    };
+
+    const openEdit = (note) => {
+        setTitle(note.title); setContent(note.content);
+        setColorIdx(note.colorIdx ?? 0);
+        setActive(note); setModal("edit");
+    };
+
+    const openView = (note) => {
+        setActive(note); setModal("view");
+    };
+
+    const saveNote = () => {
+        if (!title.trim() && !content.trim()) return;
+        if (modal === "add") {
+            const n = { id: Date.now(), title: title.trim(), content: content.trim(), colorIdx, createdAt: new Date().toISOString() };
+            setNotes(p => [n, ...p]);
+        } else {
+            setNotes(p => p.map(n => n.id === active.id
+                ? { ...n, title: title.trim(), content: content.trim(), colorIdx, updatedAt: new Date().toISOString() }
+                : n
+            ));
+        }
+        setModal(null);
+    };
+
+    const deleteNote = (id) => {
+        setNotes(p => p.filter(n => n.id !== id));
+        setConfirmDel(null);
+        if (modal === "view") setModal(null);
+    };
+
+    const filtered = notes.filter(n =>
+        n.title.toLowerCase().includes(search.toLowerCase()) ||
+        n.content.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+        <>
+            <Head title="المفكرة - قمرة" />
+            <div className="min-h-screen bg-gray-100 flex justify-center" dir="rtl">
+                <div className="w-full max-w-sm min-h-screen flex flex-col bg-gray-100">
+
+                    {/* Header */}
+                    <div className="bg-white flex items-center gap-3 sticky top-0 z-20 shadow-sm safe-header">
+                        <button
+                            onClick={() => router.get("/")}
+                            className="w-9 h-17 flex items-center justify-center bg-[#800000] text-white active:opacity-80 transition-opacity"
+                        >
+                            <BackIcon />
+                        </button>
+                        <h1 className="font-bold text-gray-900 text-lg">المفكرة</h1>
+                        <span className="mr-auto ml-4 text-xs text-gray-400">{notes.length} ملاحظة</span>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto no-scrollbar">
+                        <div className="px-4 pt-4 pb-28 space-y-3">
+
+                            {/* Search */}
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                    placeholder="ابحث في ملاحظاتك..."
+                                    className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400 pr-10"
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-base">🔍</span>
+                            </div>
+
+                            {/* Empty state */}
+                            {filtered.length === 0 && (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <div className="text-5xl mb-4">📝</div>
+                                    <p className="font-semibold text-gray-500 text-base">
+                                        {search ? "لا توجد نتائج" : "لا توجد ملاحظات بعد"}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        {search ? "جرّب كلمة بحث أخرى" : "اضغط + لإضافة ملاحظة جديدة"}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Notes grid */}
+                            <div className="grid grid-cols-2 gap-3">
+                                {filtered.map(note => {
+                                    const col = COLORS[note.colorIdx ?? 0];
+                                    return (
+                                        <button
+                                            key={note.id}
+                                            onClick={() => openView(note)}
+                                            className="text-right rounded-2xl p-3.5 shadow-sm active:scale-95 transition-transform"
+                                            style={{ background: col.bg, border: `1.5px solid ${col.border}20` }}
+                                        >
+                                            <div className="flex items-start justify-between gap-1 mb-1.5">
+                                                <p className="font-bold text-gray-800 text-sm leading-snug line-clamp-2 flex-1">
+                                                    {note.title || "بدون عنوان"}
+                                                </p>
+                                                <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5" style={{ background: col.dot }} />
+                                            </div>
+                                            {note.content && (
+                                                <p className="text-xs text-gray-500 leading-relaxed line-clamp-3 mb-2">
+                                                    {note.content}
+                                                </p>
+                                            )}
+                                            <p className="text-xs text-gray-400">{formatDate(note.updatedAt ?? note.createdAt)}</p>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* FAB */}
+                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex justify-center pointer-events-none" style={{ width: "100%", maxWidth: "384px" }}>
+                        <button
+                            onClick={openAdd}
+                            className="pointer-events-auto w-14 h-14 rounded-full bg-[#800000] text-white shadow-xl flex items-center justify-center active:opacity-80 transition-opacity"
+                        >
+                            <PlusIcon />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* View modal */}
+            {modal === "view" && active && (
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center" dir="rtl">
+                    <div className="w-full max-w-sm bg-white rounded-t-3xl flex flex-col" style={{ maxHeight: "85vh" }}>
+                        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
+                            <h2 className="font-bold text-gray-900 text-base flex-1 ml-4">
+                                {active.title || "بدون عنوان"}
+                            </h2>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => openEdit(active)}
+                                    className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 active:opacity-70">
+                                    <EditIcon />
+                                </button>
+                                <button onClick={() => setConfirmDel(active.id)}
+                                    className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center text-red-500 active:opacity-70">
+                                    <TrashIcon />
+                                </button>
+                                <button onClick={() => setModal(null)}
+                                    className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 font-bold active:opacity-70">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto px-5 py-4 no-scrollbar">
+                            <p className="text-xs text-gray-400 mb-3">{formatDate(active.updatedAt ?? active.createdAt)}</p>
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                {active.content || <span className="text-gray-300 italic">لا يوجد محتوى</span>}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add / Edit modal */}
+            {(modal === "add" || modal === "edit") && (
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center" dir="rtl">
+                    <div className="w-full max-w-sm bg-white rounded-t-3xl flex flex-col" style={{ maxHeight: "90vh" }}>
+                        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
+                            <h2 className="font-bold text-gray-900 text-base">
+                                {modal === "add" ? "ملاحظة جديدة" : "تعديل الملاحظة"}
+                            </h2>
+                            <button onClick={() => setModal(null)}
+                                className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 font-bold active:opacity-70">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 no-scrollbar">
+                            {/* Color picker */}
+                            <div className="flex gap-2">
+                                {COLORS.map((c, i) => (
+                                    <button key={i} onClick={() => setColorIdx(i)}
+                                        className={`w-7 h-7 rounded-full transition-transform ${colorIdx === i ? "ring-2 ring-offset-1 ring-gray-400 scale-110" : ""}`}
+                                        style={{ background: c.dot }}
+                                    />
+                                ))}
+                            </div>
+
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={e => setTitle(e.target.value)}
+                                placeholder="العنوان"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400"
+                            />
+                            <textarea
+                                value={content}
+                                onChange={e => setContent(e.target.value)}
+                                placeholder="اكتب ملاحظتك هنا..."
+                                rows={8}
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400 resize-none"
+                            />
+                        </div>
+
+                        <div className="px-5 pb-8 pt-3 border-t border-gray-100">
+                            <button
+                                onClick={saveNote}
+                                disabled={!title.trim() && !content.trim()}
+                                className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all ${
+                                    title.trim() || content.trim()
+                                        ? "bg-[#800000] text-white active:opacity-80"
+                                        : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                                }`}
+                            >
+                                {modal === "add" ? "حفظ الملاحظة" : "حفظ التعديلات"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete confirm */}
+            {confirmDel && (
+                <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center px-6" dir="rtl">
+                    <div className="bg-white rounded-3xl p-6 w-full max-w-xs text-center space-y-4">
+                        <div className="text-4xl">🗑️</div>
+                        <p className="font-bold text-gray-900">حذف الملاحظة؟</p>
+                        <p className="text-xs text-gray-400">لا يمكن التراجع عن هذا الإجراء.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setConfirmDel(null)}
+                                className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-gray-600 active:opacity-80">
+                                إلغاء
+                            </button>
+                            <button onClick={() => deleteNote(confirmDel)}
+                                className="flex-1 py-3 rounded-2xl bg-red-600 text-white text-sm font-bold active:opacity-80">
+                                حذف
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}

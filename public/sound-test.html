@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>اختبار الأصوات - قمرة</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  body { background: #0f0f0f; color: #fff; min-height: 100vh; padding: 20px; }
+  h1 { text-align: center; color: #b91c1c; margin-bottom: 6px; font-size: 22px; }
+  .sub { text-align: center; color: #666; font-size: 13px; margin-bottom: 20px; }
+
+  .controls {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+    background: #1a1a1a; border-radius: 14px; padding: 14px; margin-bottom: 20px;
+  }
+  .toggle-group { display: flex; gap: 6px; align-items: center; }
+  .toggle-group label { color: #aaa; font-size: 13px; margin-left: 6px; }
+  .btn-toggle {
+    padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: bold; transition: all .15s;
+    background: #2a2a2a; color: #777;
+  }
+  .btn-toggle.active { background: #b91c1c; color: #fff; }
+
+  .now-playing {
+    text-align: center; background: #1a0808; border: 1px solid #b91c1c44;
+    border-radius: 10px; padding: 10px 16px; margin-bottom: 18px;
+    font-size: 13px; color: #f87171; min-height: 38px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  .section-title {
+    color: #b91c1c; font-size: 12px; font-weight: bold; letter-spacing: 1px;
+    text-transform: uppercase; margin: 16px 0 8px; padding-right: 4px;
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 8px; }
+
+  .sound-btn {
+    background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px;
+    padding: 10px 12px; cursor: pointer; text-align: right;
+    display: flex; flex-direction: column; gap: 4px; transition: all .15s;
+    color: inherit;
+  }
+  .sound-btn:hover { background: #2a1010; border-color: #b91c1c66; }
+  .sound-btn.playing { background: #2a0808; border-color: #b91c1c; box-shadow: 0 0 10px #b91c1c44; }
+  .sound-num { font-size: 10px; color: #555; }
+  .sound-label { font-size: 12px; color: #ddd; line-height: 1.4; }
+  .sound-btn.playing .sound-label { color: #f87171; }
+  .play-icon { font-size: 16px; margin-bottom: 2px; }
+
+  .stop-btn {
+    display: block; width: 100%; margin: 12px 0;
+    background: #2a2a2a; color: #aaa; border: none; border-radius: 10px;
+    padding: 10px; cursor: pointer; font-size: 13px; font-weight: bold;
+  }
+  .stop-btn:hover { background: #3a3a3a; }
+</style>
+</head>
+<body>
+
+<h1>🔊 اختبار الأصوات</h1>
+<p class="sub">اضغط على أي صوت لتشغيله — /sounds/qmra-sound/{مساعد}/{لغة}/{رقم}.mp3</p>
+
+<div class="controls">
+  <div class="toggle-group">
+    <label>المساعد:</label>
+    <button class="btn-toggle active" onclick="setAssistant('Hamad', this)">حمد</button>
+    <button class="btn-toggle"        onclick="setAssistant('shikah', this)">شيخة</button>
+  </div>
+  <div class="toggle-group">
+    <label>اللغة:</label>
+    <button class="btn-toggle active" onclick="setLang('ar', this)">عربي</button>
+    <button class="btn-toggle"        onclick="setLang('en', this)">English</button>
+  </div>
+</div>
+
+<div class="now-playing" id="nowPlaying">⏸ لا يوجد تشغيل</div>
+<button class="stop-btn" onclick="stopAll()">⏹ إيقاف التشغيل</button>
+
+<div id="soundsContainer"></div>
+
+<audio id="player"></audio>
+
+<script>
+let assistant = 'Hamad';
+let lang = 'ar';
+let currentBtn = null;
+const player = document.getElementById('player');
+
+const SOUNDS = [
+  // ── معروفة ──────────────────────────────────────────────────────────
+  { num: 1,  label: 'ترحيب عند التشغيل',         group: 'أحداث التطبيق' },
+  { num: 2,  label: 'صوت 2',                       group: 'أحداث التطبيق' },
+  { num: 3,  label: 'صوت 3',                       group: 'أحداث التطبيق' },
+  { num: 4,  label: 'صوت 4',                       group: 'أحداث التطبيق' },
+  { num: 5,  label: 'صوت 5',                       group: 'أحداث التطبيق' },
+  { num: 6,  label: 'صوت 6',                       group: 'أحداث التطبيق' },
+  { num: 7,  label: 'صوت 7',                       group: 'أحداث التطبيق' },
+  { num: 8,  label: 'صوت 8',                       group: 'أحداث التطبيق' },
+  { num: 9,  label: 'صوت 9',                       group: 'أحداث التطبيق' },
+  { num: 10, label: 'صوت 10',                      group: 'أحداث التطبيق' },
+  { num: 11, label: 'تنبيه صيانة / تذكير عام',    group: 'تنبيهات الصيانة' },
+  { num: 12, label: '🕌 أذان الفجر',              group: 'أوقات الصلاة' },
+  { num: 13, label: '🕌 أذان الظهر',              group: 'أوقات الصلاة' },
+  { num: 14, label: '🕌 أذان العصر',              group: 'أوقات الصلاة' },
+  { num: 15, label: '🕌 أذان المغرب',             group: 'أوقات الصلاة' },
+  { num: 16, label: '🕌 أذان العشاء',             group: 'أوقات الصلاة' },
+  { num: 17, label: 'صوت 17',                      group: 'تنبيهات الصيانة' },
+  { num: 18, label: 'صوت 18',                      group: 'تنبيهات الصيانة' },
+  { num: 19, label: 'صوت 19',                      group: 'تنبيهات الصيانة' },
+  { num: 20, label: 'صوت 20',                      group: 'تنبيهات الصيانة' },
+  { num: 21, label: 'صوت 21',                      group: 'تنبيهات الصيانة' },
+  { num: 22, label: 'صوت 22',                      group: 'تنبيهات الصيانة' },
+  { num: 23, label: 'صوت 23',                      group: 'تنبيهات الصيانة' },
+  { num: 24, label: 'صوت 24',                      group: 'تنبيهات الصيانة' },
+  { num: 25, label: 'صوت 25',                      group: 'تنبيهات الصيانة' },
+  { num: 26, label: 'صوت 26',                      group: 'تنبيهات الصيانة' },
+  { num: 27, label: 'صوت 27',                      group: 'تنبيهات الصيانة' },
+  { num: 28, label: 'صوت 28',                      group: 'تنبيهات الصيانة' },
+  { num: 29, label: 'صوت 29',                      group: 'تنبيهات الصيانة' },
+  { num: 30, label: 'صوت 30',                      group: 'تنبيهات الصيانة' },
+  { num: 31, label: 'صوت 31',                      group: 'تنبيهات الصيانة' },
+  { num: 32, label: 'صوت 32',                      group: 'تنبيهات الصيانة' },
+  { num: 33, label: 'صوت 33',                      group: 'تنبيهات الصيانة' },
+  { num: 34, label: 'صوت 34',                      group: 'تنبيهات الصيانة' },
+  { num: 35, label: 'صوت 35',                      group: 'تنبيهات الصيانة' },
+  { num: 36, label: 'صوت 36',                      group: 'تنبيهات الصيانة' },
+  { num: 37, label: 'صوت 37',                      group: 'تنبيهات الصيانة' },
+  { num: 38, label: '📋 انتهاء تسجيل المركبة',   group: 'تنبيهات الانتهاء' },
+  { num: 39, label: '🛡️ انتهاء التأمين',          group: 'تنبيهات الانتهاء' },
+  { num: 40, label: 'صوت 40',                      group: 'تنبيهات الانتهاء' },
+  { num: 41, label: 'صوت 41',                      group: 'تنبيهات الانتهاء' },
+  { num: 42, label: 'صوت 42',                      group: 'تنبيهات الانتهاء' },
+  { num: 43, label: 'صوت 43',                      group: 'تنبيهات الانتهاء' },
+  { num: 44, label: 'صوت 44',                      group: 'تنبيهات الانتهاء' },
+  { num: 45, label: 'صوت 45',                      group: 'تنبيهات الانتهاء' },
+  { num: 46, label: 'صوت 46',                      group: 'تنبيهات الانتهاء' },
+  { num: 47, label: 'صوت 47',                      group: 'تنبيهات الانتهاء' },
+  { num: 48, label: 'صوت 48',                      group: 'تنبيهات الانتهاء' },
+];
+
+function setAssistant(val, el) {
+  assistant = val;
+  document.querySelectorAll('.toggle-group:nth-child(1) .btn-toggle').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  stopAll();
+}
+
+function setLang(val, el) {
+  lang = val;
+  document.querySelectorAll('.toggle-group:nth-child(2) .btn-toggle').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  stopAll();
+}
+
+function playSound(num, btn, label) {
+  if (currentBtn) currentBtn.classList.remove('playing');
+  currentBtn = btn;
+  btn.classList.add('playing');
+
+  const path = `/sounds/qmra-sound/${assistant}/${lang}/${num}.mp3`;
+  document.getElementById('nowPlaying').innerHTML =
+    `▶ <b>${label}</b> &nbsp;—&nbsp; <span style="color:#666;font-size:11px">${path}</span>`;
+
+  player.src = path;
+  player.load();
+  player.play().catch(() => {
+    document.getElementById('nowPlaying').innerHTML =
+      `⚠️ الملف غير موجود: <span style="color:#555;font-size:11px">${path}</span>`;
+    btn.classList.remove('playing');
+    currentBtn = null;
+  });
+}
+
+function stopAll() {
+  player.pause(); player.src = '';
+  if (currentBtn) { currentBtn.classList.remove('playing'); currentBtn = null; }
+  document.getElementById('nowPlaying').innerHTML = '⏸ لا يوجد تشغيل';
+}
+
+player.addEventListener('ended', () => {
+  if (currentBtn) currentBtn.classList.remove('playing');
+  currentBtn = null;
+  document.getElementById('nowPlaying').innerHTML = '✅ انتهى التشغيل';
+});
+
+// Build grid
+function buildUI() {
+  const container = document.getElementById('soundsContainer');
+  container.innerHTML = '';
+  const groups = [...new Set(SOUNDS.map(s => s.group))];
+  groups.forEach(group => {
+    const title = document.createElement('div');
+    title.className = 'section-title';
+    title.textContent = group;
+    container.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    SOUNDS.filter(s => s.group === group).forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'sound-btn';
+      btn.id = `snd-${s.num}`;
+      btn.innerHTML = `
+        <span class="play-icon">▶</span>
+        <span class="sound-num">${s.num}</span>
+        <span class="sound-label">${s.label}</span>
+      `;
+      btn.onclick = () => playSound(s.num, btn, s.label);
+      grid.appendChild(btn);
+    });
+    container.appendChild(grid);
+  });
+}
+
+buildUI();
+</script>
+</body>
+</html>

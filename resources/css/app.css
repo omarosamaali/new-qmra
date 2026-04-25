@@ -1,0 +1,72 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../**/*.jsx';
+
+@theme {
+    --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* ── Safe-area inset utilities ──────────────────────────────────────────────── */
+:root {
+    --sat: env(safe-area-inset-top,    0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left,   0px);
+    --sar: env(safe-area-inset-right,  0px);
+}
+
+/* Apply to sticky/fixed headers so they extend behind status bar */
+.safe-header {
+    padding-top: var(--sat);
+}
+
+/* Apply to fixed bottom actions so they clear the home indicator */
+.safe-bottom {
+    padding-bottom: var(--sab);
+}
+
+/* Full-screen containers: use dynamic viewport height + push past notch */
+.safe-screen {
+    min-height: 100dvh;
+    padding-top:    var(--sat);
+    padding-bottom: var(--sab);
+    padding-left:   var(--sal);
+    padding-right:  var(--sar);
+}
+
+/* For bottom-fixed bars the content should add bottom inset automatically */
+.pb-safe {
+    padding-bottom: max(var(--sab), 1rem);
+}
+
+/* Leaflet map z-index fix inside dashboard */
+.leaflet-container { z-index: 0; }
+.leaflet-pane      { z-index: 1; }
+.leaflet-top,
+.leaflet-bottom    { z-index: 2; }
+
+/* PIN shake animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-8px); }
+    40%       { transform: translateX(8px); }
+    60%       { transform: translateX(-6px); }
+    80%       { transform: translateX(6px); }
+}
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

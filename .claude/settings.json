@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer show *)",
+      "WebFetch(domain:qmra.ae)",
+      "WebSearch",
+      "WebFetch(domain:fmstream.org)",
+      "WebFetch(domain:onlineradiobox.com)",
+      "WebFetch(domain:liveonlineradio.net)",
+      "WebFetch(domain:big-radio.net)",
+      "WebFetch(domain:tunein.com)",
+      "WebFetch(domain:maraya.sba.net.ae)",
+      "WebFetch(domain:www.rcast.net)",
+      "WebFetch(domain:makkahlive.org)",
+      "WebFetch(domain:radiotune.fm)",
+      "WebFetch(domain:theonestopradio.com)",
+      "WebFetch(domain:quranradio.net)",
+      "WebFetch(domain:online-radio.eu)"
+    ]
+  }
+}

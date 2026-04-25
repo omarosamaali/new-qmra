@@ -1,0 +1,1463 @@
+{
+  "info": {
+    "_postman_id": "4a11ddf1-7e82-4625-9c67-9cea5a770038",
+    "name": "Qmra",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33348560",
+    "_collection_link": "https://go.postman.co/collection/33348560-4a11ddf1-7e82-4625-9c67-9cea5a770038?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Packages",
+      "item": [
+        {
+          "name": "get",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/packages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "packages"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "sr",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/packages",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "packages"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "127.0.0.1:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.3.26"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 14 Apr 2026 11:09:05 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "XSRF-TOKEN=eyJpdiI6InR2ek5obmNEdU5pSDdrcUlHcUVvNFE9PSIsInZhbHVlIjoiTE1RaGV6RlRObVg0cHV1K0Z5dmVkWHI2eGR3LzNMNjJnMnFoZ2Foc05oS0NXekw1a2dkTUJWc09DNW5leTNLdVVXTW1HMUxpZnI0ejd3K1V6cGpJdU01UFRDbjBjZVNWZGNTRDQrTlV2KytRSVJxS0FSOUJrY0ZUYjZMWS9oVUoiLCJtYWMiOiI2OWY0Yjc0NzJhMmU1YjA2ZWYzODU5MTAxNGQ0Yzk0ZTliYWM2Njg5MjQxODY4ODgzN2JkMDVlM2FjYWJhYWZkIiwidGFnIjoiIn0%3D; expires=Tue, 14 Apr 2026 13:09:05 GMT; Max-Age=7200; path=/; samesite=lax"
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "qmra-session=eyJpdiI6IkVrLzdyeEpGaUYwdk5vMWtnS1diVGc9PSIsInZhbHVlIjoiUjA3bENob2JxQWI0NnJSdG9xdWtPZy9PcXdva2ZVaXlVckZGYnhWMUVGQmFucGxKQkw3Q1V6MzZabXZEN3pPL1JkN3JBY3J0aFhZb2srTTUwM3dIYUhCRnNnNytnRXFudC9Ha0d5OFoyODNyeStoamRJZGZDcGJ4bFMwTG5XMmIiLCJtYWMiOiJhNTRmY2MwZWU1OTQzNGI2Zjk0MDE5NjMyYmFiOGExOTU4NWY5NWIwYzRkYTJiNjYzNGEwNTFhYzI1YjY3NjBjIiwidGFnIjoiIn0%3D; expires=Tue, 14 Apr 2026 13:09:05 GMT; Max-Age=7200; path=/; httponly; samesite=lax"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": 1,\n            \"title\": \"title\",\n            \"monthly_price\": \"20.00\",\n            \"yearly_price\": \"100.00\",\n            \"icon\": \"http://localhost:8000/storage/1/black-first.png\",\n            \"features\": [\n                \"asdf\",\n                \"Do minim qui ut quia\"\n            ]\n        },\n        {\n            \"id\": 2,\n            \"title\": \"title 2\",\n            \"monthly_price\": \"20.00\",\n            \"yearly_price\": \"120.00\",\n            \"icon\": \"\",\n            \"features\": [\n                \"asfd\",\n                \"asdf\",\n                \"1\"\n            ]\n        }\n    ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "subscripe",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{vault:authorization-secret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "period",
+                  "value": "monthly",
+                  "description": "between \"monthly & yearly\"",
+                  "type": "text",
+                  "uuid": "4e5322ba-2b48-44c2-a783-1f3dd3bcad13"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/subscribe/2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "subscribe",
+                "2"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "sr",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "period",
+                      "value": "monthly",
+                      "description": "between \"monthly & yearly\"",
+                      "type": "text",
+                      "uuid": "4e5322ba-2b48-44c2-a783-1f3dd3bcad13"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/subscribe/2",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "subscribe",
+                    "2"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "127.0.0.1:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.3.26"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 14 Apr 2026 13:17:51 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-RateLimit-Limit",
+                  "value": "5"
+                },
+                {
+                  "key": "X-RateLimit-Remaining",
+                  "value": "4"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": \"https://pay.ziina.com/payment_intent/d1766223-de5d-41f1-9835-16457bb855cf\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "verification",
+          "item": [
+            {
+              "name": "send-email-code",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{vault:authorization-secret}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": []
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/send-email-code",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "send-email-code"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "sr",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "formdata",
+                      "formdata": []
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/api/auth/send-email-code",
+                      "host": [
+                        "{{base_url}}"
+                      ],
+                      "path": [
+                        "api",
+                        "auth",
+                        "send-email-code"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": null,
+                  "header": [
+                    {
+                      "key": "Host",
+                      "value": "127.0.0.1:8000"
+                    },
+                    {
+                      "key": "Connection",
+                      "value": "close"
+                    },
+                    {
+                      "key": "X-Powered-By",
+                      "value": "PHP/8.3.26"
+                    },
+                    {
+                      "key": "Cache-Control",
+                      "value": "no-cache, private"
+                    },
+                    {
+                      "key": "Date",
+                      "value": "Tue, 14 Apr 2026 12:44:18 GMT"
+                    },
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    },
+                    {
+                      "key": "X-RateLimit-Limit",
+                      "value": "2"
+                    },
+                    {
+                      "key": "X-RateLimit-Remaining",
+                      "value": "1"
+                    },
+                    {
+                      "key": "Access-Control-Allow-Origin",
+                      "value": "*"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n    \"success\": true,\n    \"message\": \"Email verification code sent successfully.\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "verify-email",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{vault:authorization-secret}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "code",
+                      "value": "125641",
+                      "type": "text",
+                      "uuid": "4e5322ba-2b48-44c2-a783-1f3dd3bcad13"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/verify-email",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "verify-email"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "sr",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "formdata",
+                      "formdata": [
+                        {
+                          "key": "code",
+                          "value": "125641",
+                          "type": "text",
+                          "uuid": "4e5322ba-2b48-44c2-a783-1f3dd3bcad13"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/api/auth/verify-email",
+                      "host": [
+                        "{{base_url}}"
+                      ],
+                      "path": [
+                        "api",
+                        "auth",
+                        "verify-email"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": null,
+                  "header": [
+                    {
+                      "key": "Host",
+                      "value": "127.0.0.1:8000"
+                    },
+                    {
+                      "key": "Connection",
+                      "value": "close"
+                    },
+                    {
+                      "key": "X-Powered-By",
+                      "value": "PHP/8.3.26"
+                    },
+                    {
+                      "key": "Cache-Control",
+                      "value": "no-cache, private"
+                    },
+                    {
+                      "key": "Date",
+                      "value": "Tue, 14 Apr 2026 12:45:20 GMT"
+                    },
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    },
+                    {
+                      "key": "Access-Control-Allow-Origin",
+                      "value": "*"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n    \"success\": true,\n    \"message\": \"Email verified successfully.\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "send-phone-code",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{vault:authorization-secret}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "phone",
+                      "value": "201019113472",
+                      "type": "text",
+                      "uuid": "4e5322ba-2b48-44c2-a783-1f3dd3bcad13"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/send-phone-code",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "send-phone-code"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "sr",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "formdata",
+                      "formdata": [
+                        {
+                          "key": "phone",
+                          "value": "201019113472",
+                          "type": "text",
+                          "uuid": "4e5322ba-2b48-44c2-a783-1f3dd3bcad13"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/api/auth/send-phone-code",
+                      "host": [
+                        "{{base_url}}"
+                      ],
+                      "path": [
+                        "api",
+                        "auth",
+                        "send-phone-code"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": null,
+                  "header": [
+                    {
+                      "key": "Host",
+                      "value": "127.0.0.1:8000"
+                    },
+                    {
+                      "key": "Connection",
+                      "value": "close"
+                    },
+                    {
+                      "key": "X-Powered-By",
+                      "value": "PHP/8.3.26"
+                    },
+                    {
+                      "key": "Cache-Control",
+                      "value": "no-cache, private"
+                    },
+                    {
+                      "key": "Date",
+                      "value": "Tue, 14 Apr 2026 12:47:48 GMT"
+                    },
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    },
+                    {
+                      "key": "X-RateLimit-Limit",
+                      "value": "2"
+                    },
+                    {
+                      "key": "X-RateLimit-Remaining",
+                      "value": "0"
+                    },
+                    {
+                      "key": "Access-Control-Allow-Origin",
+                      "value": "*"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n    \"success\": true,\n    \"message\": \"Phone verification code sent successfully.\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "verify-phone",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{vault:authorization-secret}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "code",
+                      "value": "924347",
+                      "type": "text",
+                      "uuid": "4e5322ba-2b48-44c2-a783-1f3dd3bcad13"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/verify-phone",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "verify-phone"
+                  ]
+                }
+              },
+              "response": [
+                {
+                  "name": "sr",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                      }
+                    ],
+                    "body": {
+                      "mode": "formdata",
+                      "formdata": [
+                        {
+                          "key": "code",
+                          "value": "924347",
+                          "type": "text",
+                          "uuid": "4e5322ba-2b48-44c2-a783-1f3dd3bcad13"
+                        }
+                      ]
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/api/auth/verify-phone",
+                      "host": [
+                        "{{base_url}}"
+                      ],
+                      "path": [
+                        "api",
+                        "auth",
+                        "verify-phone"
+                      ]
+                    }
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": null,
+                  "header": [
+                    {
+                      "key": "Host",
+                      "value": "127.0.0.1:8000"
+                    },
+                    {
+                      "key": "Connection",
+                      "value": "close"
+                    },
+                    {
+                      "key": "X-Powered-By",
+                      "value": "PHP/8.3.26"
+                    },
+                    {
+                      "key": "Cache-Control",
+                      "value": "no-cache, private"
+                    },
+                    {
+                      "key": "Date",
+                      "value": "Tue, 14 Apr 2026 12:49:24 GMT"
+                    },
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    },
+                    {
+                      "key": "Access-Control-Allow-Origin",
+                      "value": "*"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n    \"success\": true,\n    \"message\": \"Phone verified successfully.\"\n}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "abdalla.mansour.dev@gmail.com",
+                  "type": "text",
+                  "uuid": "b5557c23-c2b0-4700-a6b2-8fdfa8510764"
+                },
+                {
+                  "key": "password",
+                  "value": "password",
+                  "type": "text",
+                  "uuid": "462d9e6e-cacf-44e8-b2f7-dc0244f8fda5"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "sr",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "email",
+                      "value": "a.mansour.code@gmail.com",
+                      "type": "text",
+                      "uuid": "b5557c23-c2b0-4700-a6b2-8fdfa8510764"
+                    },
+                    {
+                      "key": "password",
+                      "value": "password",
+                      "type": "text",
+                      "uuid": "462d9e6e-cacf-44e8-b2f7-dc0244f8fda5"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "127.0.0.1:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.3.26"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 14 Apr 2026 12:40:02 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"user\": {\n            \"id\": 3,\n            \"name\": \"code\",\n            \"email\": \"a.mansour.code@gmail.com\",\n            \"phone\": \"201019113472\",\n            \"phone_verified_at\": \"2026-02-15T19:01:16.000000Z\",\n            \"banned_at\": null,\n            \"email_verified_at\": \"2026-02-15T18:59:56.000000Z\",\n            \"created_at\": \"2026-02-11T12:18:10.000000Z\",\n            \"updated_at\": \"2026-04-14T12:36:18.000000Z\"\n        },\n        \"token\": \"4|ylCoMH0DpA5ISkh25vQCAr4korESyCD3A7b8CaFR1028a969\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "abdalla mansour",
+                  "type": "text",
+                  "uuid": "c5704fa0-03f8-4749-b5f1-16000690ee4a"
+                },
+                {
+                  "key": "email",
+                  "value": "test2@gmail.com",
+                  "type": "text",
+                  "uuid": "b5557c23-c2b0-4700-a6b2-8fdfa8510764"
+                },
+                {
+                  "key": "password",
+                  "value": "password",
+                  "type": "text",
+                  "uuid": "462d9e6e-cacf-44e8-b2f7-dc0244f8fda5"
+                },
+                {
+                  "key": "password_confirmation",
+                  "value": "password",
+                  "type": "text",
+                  "uuid": "d437b6cf-038a-460d-a048-1b27d5d72a12"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "sr",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "abdalla mansour",
+                      "type": "text",
+                      "uuid": "c5704fa0-03f8-4749-b5f1-16000690ee4a"
+                    },
+                    {
+                      "key": "email",
+                      "value": "test2@gmail.com",
+                      "type": "text",
+                      "uuid": "b5557c23-c2b0-4700-a6b2-8fdfa8510764"
+                    },
+                    {
+                      "key": "password",
+                      "value": "password",
+                      "type": "text",
+                      "uuid": "462d9e6e-cacf-44e8-b2f7-dc0244f8fda5"
+                    },
+                    {
+                      "key": "password_confirmation",
+                      "value": "password",
+                      "type": "text",
+                      "uuid": "d437b6cf-038a-460d-a048-1b27d5d72a12"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "127.0.0.1:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.3.26"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 14 Apr 2026 11:51:40 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": \"3|fMtWfUtNKmiW0eZfIEvW4U2LVqtjsHonupYyGroy6ed2f2e4\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{vault:authorization-secret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "sr",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/auth/logout",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "127.0.0.1:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.3.26"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 14 Apr 2026 11:49:12 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Logged out successfully.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "send-reset-code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "a.mansour.code@gmail.com",
+                  "type": "text",
+                  "uuid": "424c9d7f-846a-46c8-8c34-6116ba0077ea"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/send-reset-code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "send-reset-code"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "sr",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "email",
+                      "value": "a.mansour.code@gmail.com",
+                      "type": "text",
+                      "uuid": "424c9d7f-846a-46c8-8c34-6116ba0077ea"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/send-reset-code",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "send-reset-code"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "127.0.0.1:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.3.26"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 14 Apr 2026 12:36:33 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "X-RateLimit-Limit",
+                  "value": "2"
+                },
+                {
+                  "key": "X-RateLimit-Remaining",
+                  "value": "1"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Verification code has been sent to your email.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "update-password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "email",
+                  "value": "a.mansour.code@gmail.com",
+                  "type": "text",
+                  "uuid": "b3f51a9c-aa3b-48d5-bc22-9fbd4ae453cc"
+                },
+                {
+                  "key": "code",
+                  "value": "109155",
+                  "type": "text",
+                  "uuid": "fb1932e5-3cea-4a72-ae95-13d7679b20ad"
+                },
+                {
+                  "key": "password",
+                  "value": "password",
+                  "type": "text",
+                  "uuid": "75baf0f6-d541-4bed-9a64-4ce5167bf2a2"
+                },
+                {
+                  "key": "password_confirmation",
+                  "value": "password",
+                  "type": "text",
+                  "uuid": "885a61ad-9e3d-4b50-9401-f92c8f4241f4"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/update-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "update-password"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "sr",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "email",
+                      "value": "a.mansour.code@gmail.com",
+                      "type": "text",
+                      "uuid": "b3f51a9c-aa3b-48d5-bc22-9fbd4ae453cc"
+                    },
+                    {
+                      "key": "code",
+                      "value": "109155",
+                      "type": "text",
+                      "uuid": "fb1932e5-3cea-4a72-ae95-13d7679b20ad"
+                    },
+                    {
+                      "key": "password",
+                      "value": "password",
+                      "type": "text",
+                      "uuid": "75baf0f6-d541-4bed-9a64-4ce5167bf2a2"
+                    },
+                    {
+                      "key": "password_confirmation",
+                      "value": "password",
+                      "type": "text",
+                      "uuid": "885a61ad-9e3d-4b50-9401-f92c8f4241f4"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/auth/update-password",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "update-password"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "127.0.0.1:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.3.26"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 14 Apr 2026 12:36:18 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Your password has been reset successfully. You can now login.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "get",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{vault:authorization-secret}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profile"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "sr",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/api/profile",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "profile"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Host",
+                  "value": "127.0.0.1:8000"
+                },
+                {
+                  "key": "Connection",
+                  "value": "close"
+                },
+                {
+                  "key": "X-Powered-By",
+                  "value": "PHP/8.3.26"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private"
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 14 Apr 2026 13:34:36 GMT"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"user\": {\n            \"id\": 9,\n            \"name\": \"abdalla dev\",\n            \"email\": \"abdalla.mansour.dev@gmail.com\",\n            \"phone\": \"201019113472\",\n            \"phone_verified_at\": \"2026-04-14T12:49:24.000000Z\",\n            \"banned_at\": null,\n            \"email_verified_at\": \"2026-04-14T12:45:20.000000Z\",\n            \"created_at\": \"2026-04-14T12:23:34.000000Z\",\n            \"updated_at\": \"2026-04-14T12:49:24.000000Z\"\n        },\n        \"subscription\": {\n            \"id\": 8,\n            \"user_id\": 9,\n            \"package_id\": 2,\n            \"amount\": \"20.00\",\n            \"currency\": \"AED\",\n            \"period\": \"monthly\",\n            \"expires_at\": \"2026-05-14T13:17:50.000000Z\",\n            \"status\": \"active\",\n            \"ziina_payment_intent_id\": \"d1766223-de5d-41f1-9835-16457bb855cf\",\n            \"ziina_operation_id\": \"3e231350-e689-4b32-b4f2-1cfe6f73349e\",\n            \"created_at\": \"2026-04-14T13:17:50.000000Z\",\n            \"updated_at\": \"2026-04-14T13:18:30.000000Z\"\n        }\n    }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": ""
+    },
+    {
+      "key": "vault:authorization-secret",
+      "value": ""
+    }
+  ]
+}
