@@ -213,6 +213,14 @@ export default function CarDashboard({ userName }) {
 
     useEffect(() => { const id = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(id); }, []);
 
+    // Auto dark/light theme: dark from 6 PM → 6 AM
+    useEffect(() => {
+        const h = now.getHours();
+        const shouldBeDark = h >= 18 || h < 6;
+        setThemeR(shouldBeDark ? "dark" : "light");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [now.getHours()]);
+
     useEffect(() => {
         const fn = () => setIsLandscape(window.innerWidth > window.innerHeight);
         window.addEventListener("resize", fn);
