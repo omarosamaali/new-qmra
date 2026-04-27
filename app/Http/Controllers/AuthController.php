@@ -72,10 +72,11 @@ class AuthController extends Controller
                         $profileData = $profileRes->json();
                         $profile     = $profileData['data'] ?? $profileData;
                         $sub         = $profile['subscription'] ?? null;
-                        if ($sub) {
+                        if ($sub && ($sub['status'] ?? '') === 'active') {
                             $request->session()->put('subscription', [
                                 'id'           => $sub['id']           ?? null,
                                 'package_id'   => $sub['package_id']   ?? null,
+                                'status'       => 'active',
                                 'cars_count'   => $sub['cars_count']   ?? ($sub['package']['cars_count']   ?? 1),
                                 'addons_count' => $sub['addons_count'] ?? ($sub['package']['addons_count'] ?? 0),
                                 'title'        => $sub['package']['title'] ?? null,
@@ -157,10 +158,11 @@ class AuthController extends Controller
                         $profileData = $profileRes->json();
                         $profile     = $profileData['data'] ?? $profileData;
                         $sub         = $profile['subscription'] ?? null;
-                        if ($sub) {
+                        if ($sub && ($sub['status'] ?? '') === 'active') {
                             $request->session()->put('subscription', [
                                 'id'           => $sub['id']           ?? null,
                                 'package_id'   => $sub['package_id']   ?? null,
+                                'status'       => 'active',
                                 'cars_count'   => $sub['cars_count']   ?? ($sub['package']['cars_count']   ?? 1),
                                 'addons_count' => $sub['addons_count'] ?? ($sub['package']['addons_count'] ?? 0),
                                 'title'        => $sub['package']['title'] ?? null,

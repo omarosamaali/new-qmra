@@ -43,25 +43,23 @@ class SubscriptionsController extends Controller
             if (is_array($data)) {
                 $sub = $data['subscription'] ?? [];
                 $pkg = $data['package']      ?? [];
-                $request->session()->put('subscription', [
-                    'id'           => $sub['id']         ?? null,
-                    'package_id'   => $sub['package_id'] ?? $packageId,
-                    'cars_count'   => (int) ($pkg['cars_count']   ?? $sub['cars_count']   ?? 1),
-                    'addons_count' => (int) ($pkg['addons_count'] ?? $sub['addons_count'] ?? 0),
-                    'title'        => $pkg['title']      ?? null,
-                    'expires_at'   => $sub['expires_at'] ?? null,
-                ]);
+                // Only store subscription if it is active
+                if (($sub['status'] ?? '') === 'active') {
+                    $request->session()->put('subscription', [
+                        'id'           => $sub['id']         ?? null,
+                        'package_id'   => $sub['package_id'] ?? $packageId,
+                        'status'       => 'active',
+                        'cars_count'   => (int) ($pkg['cars_count']   ?? $sub['cars_count']   ?? 1),
+                        'addons_count' => (int) ($pkg['addons_count'] ?? $sub['addons_count'] ?? 0),
+                        'title'        => $pkg['title']      ?? null,
+                        'expires_at'   => $sub['expires_at'] ?? null,
+                    ]);
+                }
                 return response()->json(['payment_url' => null]);
             }
 
-            // data is a payment URL string (Ziina)
-            $request->session()->put('subscription', [
-                'package_id'   => $packageId,
-                'cars_count'   => (int) $request->input('cars_count',   1),
-                'addons_count' => (int) $request->input('addons_count', 0),
-                'title'        => $request->input('title', ''),
-                'expires_at'   => null,
-            ]);
+            // data is a payment URL string (Ziina) — do NOT store subscription yet,
+            // payment is not confirmed. The callback will store it after confirmation.
             return response()->json(['payment_url' => $data]);
         }
 
@@ -80,15 +78,19 @@ class SubscriptionsController extends Controller
             if ($res->successful()) {
                 $profile = $res->json('data') ?? $res->json();
                 $sub = $profile['subscription'] ?? null;
-                if ($sub) {
+                if ($sub && ($sub['status'] ?? '') === 'active') {
                     $request->session()->put('subscription', [
                         'id'           => $sub['id']          ?? null,
                         'package_id'   => $sub['package_id']  ?? null,
+                        'status'       => 'active',
                         'cars_count'   => $sub['cars_count']  ?? ($sub['package']['cars_count']  ?? 1),
                         'addons_count' => $sub['addons_count']?? ($sub['package']['addons_count'] ?? 0),
                         'title'        => $sub['package']['title'] ?? null,
                         'expires_at'   => $sub['expires_at']  ?? null,
                     ]);
+                } else {
+                    // Payment pending or failed — clear any stale subscription
+                    $request->session()->forget('subscription');
                 }
             }
         }

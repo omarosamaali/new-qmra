@@ -23,6 +23,12 @@ class CheckSubscription
             return redirect('/subscriptions');
         }
 
+        // Subscription must be active
+        if (($subscription['status'] ?? '') !== 'active') {
+            $request->session()->forget('subscription');
+            return redirect('/subscriptions');
+        }
+
         // Subscription expired → clear it and redirect to subscriptions
         $expiresAt = $subscription['expires_at'] ?? null;
         if ($expiresAt && Carbon::parse($expiresAt)->isPast()) {
