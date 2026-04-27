@@ -48,7 +48,7 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
             >
 
                 {/* Header */}
-                <div className="px-5 pt-12 pb-5 bg-[#000]">
+                <div className="px-5 pb-5 bg-[#000]" style={{ paddingTop: "calc(env(safe-area-inset-top) + 2rem)" }}>
                     <img src="/images/light-logo.png" alt="قمرة" className="h-12 object-contain mb-3" />
                     <p className="text-white/80 text-xs">
                         {isAr ? "صديقك لإدارة مركبتك بذكاء" : "Your smart car friend"}
@@ -92,9 +92,7 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
                             onClick={() => { handleClose(); setTimeout(() => router.get(item.route), 300); }}
                             className="w-full flex items-center gap-3 px-5 py-3 active:bg-gray-50 transition-colors"
                         >
-                            <span className="text-xl w-7 text-center leading-none">
-                                <img className="w-4" src="/images/fav.png" alt="" />
-                            </span>
+                            <span className="text-xl w-7 text-center leading-none">{item.icon}</span>
                             <span className="font-medium text-gray-800 text-sm">
                                 {isAr ? item.ar : item.en}
                             </span>
@@ -809,7 +807,7 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
                 <div className="w-full max-w-sm min-h-screen flex flex-col bg-gray-100">
 
                     {/* Header */}
-                    <div className="bg-white px-4 pt-6 pb-4 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+                    <div className="bg-white px-4 pb-4 flex items-center justify-between sticky top-0 z-20 shadow-sm safe-header" style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}>
                         <button
                             onClick={() => setMenuOpen(true)}
                             className="w-10 h-10 flex flex-col items-center justify-center gap-1.5 active:opacity-70 transition-opacity"
