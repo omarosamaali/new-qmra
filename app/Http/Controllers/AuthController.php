@@ -62,6 +62,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $request->session()->put('api_token', $token);
             $request->session()->put('auth_user', $apiUser);
+            $request->session()->forget('subscription'); // clear any stale subscription before re-fetching
 
             // Fetch subscription using the fresh token
             if ($token) {
@@ -146,6 +147,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $request->session()->put('api_token', $token);
             $request->session()->put('auth_user', $apiUser);
+            $request->session()->forget('subscription'); // clear any stale subscription before re-fetching
 
             // Fetch subscription using the fresh token
             if ($token) {
@@ -167,7 +169,7 @@ class AuthController extends Controller
                         }
                     }
                 } catch (\Exception $e) {
-                    // Profile fetch failed — subscription will be null, user goes to /subscriptions
+                    // Profile fetch failed — subscription remains null, user goes to /subscriptions
                 }
             }
 

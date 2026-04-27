@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Carbon\Carbon;
 
 class CheckSubscription
 {
@@ -15,8 +16,17 @@ class CheckSubscription
             return redirect('/login');
         }
 
-        // No subscription yet → pick a plan first
-        if (! $request->session()->get('subscription')) {
+        $subscription = $request->session()->get('subscription');
+
+        // No subscription → pick a plan first
+        if (! $subscription) {
+            return redirect('/subscriptions');
+        }
+
+        // Subscription expired → clear it and redirect to subscriptions
+        $expiresAt = $subscription['expires_at'] ?? null;
+        if ($expiresAt && Carbon::parse($expiresAt)->isPast()) {
+            $request->session()->forget('subscription');
             return redirect('/subscriptions');
         }
 
