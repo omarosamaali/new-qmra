@@ -21,7 +21,7 @@ export default function Terms({ privacyPolicy, termsAndConditions }) {
 
                     <div className="bg-white flex items-center gap-3 sticky top-0 z-20 shadow-sm safe-header">
                         <button
-                            onClick={() => router.get("/about")}
+                            onClick={() => router.get("/home")}
                             className="w-9 h-17 flex items-center justify-center bg-[#800000] text-white active:opacity-80 transition-opacity"
                         >
                             <BackIcon />
