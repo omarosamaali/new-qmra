@@ -92,7 +92,9 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
                             onClick={() => { handleClose(); setTimeout(() => router.get(item.route), 300); }}
                             className="w-full flex items-center gap-3 px-5 py-3 active:bg-gray-50 transition-colors"
                         >
-                            <span className="text-xl w-7 text-center leading-none">{item.icon}</span>
+                            <span className="text-xl w-7 text-center leading-none">
+                                <img className="w-4" src="/images/fav.png" alt="" />
+                            </span>
                             <span className="font-medium text-gray-800 text-sm">
                                 {isAr ? item.ar : item.en}
                             </span>

@@ -526,6 +526,18 @@ export const brandsData = [
             { en: "T8", ar: "تي 8" },
         ],
     },
+    {
+        en: "Jetour", ar: "جيتور",
+        models: [
+            { en: "X70", ar: "إكس 70" },
+            { en: "X70 Plus", ar: "إكس 70 بلس" },
+            { en: "X90", ar: "إكس 90" },
+            { en: "X90 Plus", ar: "إكس 90 بلس" },
+            { en: "X95", ar: "إكس 95" },
+            { en: "Dashing", ar: "داشينج" },
+            { en: "T2", ar: "تي 2" },
+        ],
+    },
     // ── أخرى
     {
         en: "Tesla", ar: "تيسلا",
