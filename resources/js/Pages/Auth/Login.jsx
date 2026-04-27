@@ -1,6 +1,6 @@
-import { useForm } from "@inertiajs/react";
-import { Head, router } from "@inertiajs/react";
-import { useState, useEffect } from "react";
+import { Head } from "@inertiajs/react";
+import { useState, useRef } from "react";
+import axios from "axios";
 
 const LANG_KEY = "app_lang";
 
@@ -50,7 +50,10 @@ export default function Login() {
         try { return localStorage.getItem(LANG_KEY) || "ar"; } catch { return "ar"; }
     });
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [localErrors, setLocalErrors] = useState({});
+    const [errors, setErrors]         = useState({});
+    const [processing, setProcessing] = useState(false);
+    const emailRef    = useRef(null);
+    const passwordRef = useRef(null);
 
     const t    = T[lang];
     const isAr = lang === "ar";
@@ -60,22 +63,30 @@ export default function Login() {
         try { localStorage.setItem(LANG_KEY, v); } catch {}
     };
 
-    const { data, setData, post, processing, errors } = useForm({
-        email:    "",
-        password: "",
-    });
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        const email    = emailRef.current?.value?.trim()    || "";
+        const password = passwordRef.current?.value?.trim() || "";
         const errs = {};
-        if (!data.email.trim())    errs.email    = t.reqEmail;
-        if (!data.password.trim()) errs.password = t.reqPassword;
-        if (Object.keys(errs).length) { setLocalErrors(errs); return; }
-        setLocalErrors({});
-        post("/login");
+        if (!email)    errs.email    = t.reqEmail;
+        if (!password) errs.password = t.reqPassword;
+        if (Object.keys(errs).length) { setErrors(errs); return; }
+        setErrors({});
+        setProcessing(true);
+        try {
+            await axios.get("/sanctum/csrf-cookie");
+            const res = await axios.post("/login", { email, password }, {
+                headers: { "X-Requested-With": "XMLHttpRequest", "Accept": "application/json" },
+            });
+            window.location.href = res.data?.redirect || "/";
+        } catch (err) {
+            const data = err.response?.data;
+            if (data?.errors) setErrors(data.errors);
+            else setErrors({ email: data?.message || "حدث خطأ، حاول مرة أخرى" });
+        } finally {
+            setProcessing(false);
+        }
     };
-
-    const allErrors = { ...localErrors, ...errors };
 
     return (
         <>
@@ -116,28 +127,30 @@ export default function Login() {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.email}</label>
                             <input
+                                ref={emailRef}
                                 type="email"
-                                value={data.email}
-                                onChange={e => { setData("email", e.target.value); setLocalErrors(p => ({ ...p, email: "" })); }}
+                                defaultValue=""
                                 placeholder="example@email.com"
                                 autoComplete="email"
-                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${allErrors.email ? "border-red-400 bg-red-50" : "border-gray-200"}`}
+                                onChange={() => setErrors(p => ({ ...p, email: "" }))}
+                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.email ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                             />
-                            {allErrors.email && <p className="text-red-500 text-xs mt-1 text-center">{allErrors.email}</p>}
+                            {errors.email && <p className="text-red-500 text-xs mt-1 text-center">{errors.email}</p>}
                         </div>
 
                         {/* Password */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.password}</label>
                             <input
+                                ref={passwordRef}
                                 type="password"
-                                value={data.password}
-                                onChange={e => { setData("password", e.target.value); setLocalErrors(p => ({ ...p, password: "" })); }}
+                                defaultValue=""
                                 placeholder="••••••••"
                                 autoComplete="current-password"
-                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${allErrors.password ? "border-red-400 bg-red-50" : "border-gray-200"}`}
+                                onChange={() => setErrors(p => ({ ...p, password: "" }))}
+                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.password ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                             />
-                            {allErrors.password && <p className="text-red-500 text-xs mt-1 text-center">{allErrors.password}</p>}
+                            {errors.password && <p className="text-red-500 text-xs mt-1 text-center">{errors.password}</p>}
                         </div>
 
                         {/* Forgot password */}

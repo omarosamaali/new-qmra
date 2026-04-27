@@ -1,6 +1,6 @@
-import { useForm } from "@inertiajs/react";
 import { Head } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import axios from "axios";
 
 const LANG_KEY = "app_lang";
 
@@ -60,7 +60,14 @@ export default function Register() {
         try { return localStorage.getItem(LANG_KEY) || "ar"; } catch { return "ar"; }
     });
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [localErrors, setLocalErrors] = useState({});
+    const [errors, setErrors]         = useState({});
+    const [processing, setProcessing] = useState(false);
+
+    const nameRef     = useRef(null);
+    const emailRef    = useRef(null);
+    const phoneRef    = useRef(null);
+    const passwordRef = useRef(null);
+    const confirmRef  = useRef(null);
 
     const t    = T[lang];
     const isAr = lang === "ar";
@@ -70,39 +77,41 @@ export default function Register() {
         try { localStorage.setItem(LANG_KEY, v); } catch {}
     };
 
-    const { data, setData, post, processing, errors } = useForm({
-        name:                  "",
-        email:                 "",
-        phone:                 "",
-        password:              "",
-        password_confirmation: "",
-    });
+    const clearErr = (key) => setErrors(p => ({ ...p, [key]: "" }));
 
-    const clearLocal = (key) => setLocalErrors(p => ({ ...p, [key]: "" }));
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        const name                  = nameRef.current?.value?.trim()    || "";
+        const email                 = emailRef.current?.value?.trim()   || "";
+        const phone                 = phoneRef.current?.value?.trim()   || "";
+        const password              = passwordRef.current?.value        || "";
+        const password_confirmation = confirmRef.current?.value         || "";
+
         const errs = {};
-        if (!data.name.trim())                 errs.name                  = t.reqName;
-        if (!data.email.trim())                errs.email                 = t.reqEmail;
-        if (data.password.length < 8)          errs.password              = t.reqPassword;
-        if (!data.password_confirmation.trim()) errs.password_confirmation = t.reqConfirm;
-        if (data.password && data.password_confirmation && data.password !== data.password_confirmation)
+        if (!name)                              errs.name                  = t.reqName;
+        if (!email)                             errs.email                 = t.reqEmail;
+        if (password.length < 8)               errs.password              = t.reqPassword;
+        if (!password_confirmation.trim())      errs.password_confirmation = t.reqConfirm;
+        if (password && password_confirmation && password !== password_confirmation)
             errs.password_confirmation = t.mismatch;
-        if (Object.keys(errs).length) { setLocalErrors(errs); return; }
-        setLocalErrors({});
-        post("/register");
+        if (Object.keys(errs).length) { setErrors(errs); return; }
+
+        setErrors({});
+        setProcessing(true);
+        try {
+            await axios.get("/sanctum/csrf-cookie");
+            const res = await axios.post("/register", { name, email, phone, password, password_confirmation }, {
+                headers: { "X-Requested-With": "XMLHttpRequest", "Accept": "application/json" },
+            });
+            window.location.href = res.data?.redirect || "/";
+        } catch (err) {
+            const data = err.response?.data;
+            if (data?.errors) setErrors(data.errors);
+            else setErrors({ name: data?.message || "حدث خطأ، حاول مرة أخرى" });
+        } finally {
+            setProcessing(false);
+        }
     };
-
-    const allErrors = { ...localErrors, ...errors };
-
-    const fields = [
-        { key: "name",                  label: t.name,            type: "text",     placeholder: isAr ? "محمد العلي" : "John Smith", autoComplete: "name" },
-        { key: "email",                 label: t.email,           type: "email",    placeholder: "example@email.com",               autoComplete: "email" },
-        { key: "phone",                 label: t.phone,           type: "tel",      placeholder: isAr ? "+971 50 000 0000" : "+971 50 000 0000", autoComplete: "tel" },
-        { key: "password",              label: t.password,        type: "password", placeholder: "••••••••",                        autoComplete: "new-password", hint: t.passwordHint },
-        { key: "password_confirmation", label: t.confirmPassword, type: "password", placeholder: "••••••••",                        autoComplete: "new-password" },
-    ];
 
     return (
         <>
@@ -138,25 +147,80 @@ export default function Register() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                        {fields.map(f => (
-                            <div key={f.key}>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{f.label}</label>
-                                <input
-                                    type={f.type}
-                                    value={data[f.key]}
-                                    onChange={e => { setData(f.key, e.target.value); clearLocal(f.key); }}
-                                    placeholder={f.placeholder}
-                                    autoComplete={f.autoComplete}
-                                    className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${allErrors[f.key] ? "border-red-400 bg-red-50" : "border-gray-200"}`}
-                                />
-                                {f.hint && !allErrors[f.key] && (
-                                    <p className="text-gray-400 text-xs mt-1 text-center">{f.hint}</p>
-                                )}
-                                {allErrors[f.key] && (
-                                    <p className="text-red-500 text-xs mt-1 text-center">{allErrors[f.key]}</p>
-                                )}
-                            </div>
-                        ))}
+
+                        {/* Name */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.name}</label>
+                            <input
+                                ref={nameRef}
+                                type="text"
+                                defaultValue=""
+                                placeholder={isAr ? "محمد العلي" : "John Smith"}
+                                autoComplete="name"
+                                onChange={() => clearErr("name")}
+                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.name ? "border-red-400 bg-red-50" : "border-gray-200"}`}
+                            />
+                            {errors.name && <p className="text-red-500 text-xs mt-1 text-center">{errors.name}</p>}
+                        </div>
+
+                        {/* Email */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.email}</label>
+                            <input
+                                ref={emailRef}
+                                type="email"
+                                defaultValue=""
+                                placeholder="example@email.com"
+                                autoComplete="email"
+                                onChange={() => clearErr("email")}
+                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.email ? "border-red-400 bg-red-50" : "border-gray-200"}`}
+                            />
+                            {errors.email && <p className="text-red-500 text-xs mt-1 text-center">{errors.email}</p>}
+                        </div>
+
+                        {/* Phone */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.phone}</label>
+                            <input
+                                ref={phoneRef}
+                                type="tel"
+                                defaultValue=""
+                                placeholder="+971 50 000 0000"
+                                autoComplete="tel"
+                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400"
+                            />
+                        </div>
+
+                        {/* Password */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.password}</label>
+                            <input
+                                ref={passwordRef}
+                                type="password"
+                                defaultValue=""
+                                placeholder="••••••••"
+                                autoComplete="new-password"
+                                onChange={() => clearErr("password")}
+                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.password ? "border-red-400 bg-red-50" : "border-gray-200"}`}
+                            />
+                            {!errors.password && <p className="text-gray-400 text-xs mt-1 text-center">{t.passwordHint}</p>}
+                            {errors.password && <p className="text-red-500 text-xs mt-1 text-center">{errors.password}</p>}
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.confirmPassword}</label>
+                            <input
+                                ref={confirmRef}
+                                type="password"
+                                defaultValue=""
+                                placeholder="••••••••"
+                                autoComplete="new-password"
+                                onChange={() => clearErr("password_confirmation")}
+                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.password_confirmation ? "border-red-400 bg-red-50" : "border-gray-200"}`}
+                            />
+                            {errors.password_confirmation && <p className="text-red-500 text-xs mt-1 text-center">{errors.password_confirmation}</p>}
+                        </div>
 
                         <button
                             type="submit"
