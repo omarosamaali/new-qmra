@@ -12,7 +12,6 @@ export default function Terms({ privacyPolicy, termsAndConditions }) {
 
     const content = tab === "terms" ? termsAndConditions : privacyPolicy;
     const label   = tab === "terms" ? "شروط الاستخدام" : "سياسة الخصوصية";
-    // here
     return (
         <>
             <Head title={`${label} - قمرة`} />
