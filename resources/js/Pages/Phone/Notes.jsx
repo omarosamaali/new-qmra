@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Head, router } from "@inertiajs/react";
 
 const BackIcon = () => (
@@ -41,26 +41,24 @@ const formatDate = (iso) => {
 };
 
 export default function Notes() {
-    const [notes, setNotes] = useState(load);
-    const [modal, setModal] = useState(null); // null | "add" | "edit" | "view"
-    const [active, setActive] = useState(null);
-    const [title, setTitle] = useState("");
-    const [content, setContent] = useState("");
+    const [notes, setNotes]       = useState(load);
+    const [modal, setModal]       = useState(null);
+    const [active, setActive]     = useState(null);
     const [colorIdx, setColorIdx] = useState(0);
-    const [search, setSearch] = useState("");
+    const [search, setSearch]     = useState("");
     const [confirmDel, setConfirmDel] = useState(null);
+
+    const titleRef   = useRef(null);
+    const contentRef = useRef(null);
 
     useEffect(() => { save(notes); }, [notes]);
 
     const openAdd = () => {
-        setTitle(""); setContent(""); setColorIdx(0);
-        setActive(null); setModal("add");
+        setColorIdx(0); setActive(null); setModal("add");
     };
 
     const openEdit = (note) => {
-        setTitle(note.title); setContent(note.content);
-        setColorIdx(note.colorIdx ?? 0);
-        setActive(note); setModal("edit");
+        setColorIdx(note.colorIdx ?? 0); setActive(note); setModal("edit");
     };
 
     const openView = (note) => {
@@ -68,13 +66,15 @@ export default function Notes() {
     };
 
     const saveNote = () => {
-        if (!title.trim() && !content.trim()) return;
+        const t = titleRef.current?.value?.trim()   || "";
+        const c = contentRef.current?.value?.trim() || "";
+        if (!t && !c) return;
         if (modal === "add") {
-            const n = { id: Date.now(), title: title.trim(), content: content.trim(), colorIdx, createdAt: new Date().toISOString() };
+            const n = { id: Date.now(), title: t, content: c, colorIdx, createdAt: new Date().toISOString() };
             setNotes(p => [n, ...p]);
         } else {
             setNotes(p => p.map(n => n.id === active.id
-                ? { ...n, title: title.trim(), content: content.trim(), colorIdx, updatedAt: new Date().toISOString() }
+                ? { ...n, title: t, content: c, colorIdx, updatedAt: new Date().toISOString() }
                 : n
             ));
         }
@@ -239,15 +239,15 @@ export default function Notes() {
                             </div>
 
                             <input
+                                ref={titleRef}
                                 type="text"
-                                value={title}
-                                onChange={e => setTitle(e.target.value)}
+                                defaultValue={active?.title ?? ""}
                                 placeholder="العنوان"
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400"
                             />
                             <textarea
-                                value={content}
-                                onChange={e => setContent(e.target.value)}
+                                ref={contentRef}
+                                defaultValue={active?.content ?? ""}
                                 placeholder="اكتب ملاحظتك هنا..."
                                 rows={8}
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400 resize-none"
@@ -257,12 +257,7 @@ export default function Notes() {
                         <div className="px-5 pb-8 pt-3 border-t border-gray-100">
                             <button
                                 onClick={saveNote}
-                                disabled={!title.trim() && !content.trim()}
-                                className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all ${
-                                    title.trim() || content.trim()
-                                        ? "bg-[#800000] text-white active:opacity-80"
-                                        : "bg-gray-100 text-gray-300 cursor-not-allowed"
-                                }`}
+                                className="w-full py-3.5 rounded-2xl font-bold text-sm transition-all bg-[#800000] text-white active:opacity-80"
                             >
                                 {modal === "add" ? "حفظ الملاحظة" : "حفظ التعديلات"}
                             </button>
@@ -273,7 +268,7 @@ export default function Notes() {
 
             {/* Delete confirm */}
             {confirmDel && (
-                <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center px-6" dir="rtl">
+                <div className="fixed inset-0 z-60 bg-black/60 flex items-center justify-center px-6" dir="rtl">
                     <div className="bg-white rounded-3xl p-6 w-full max-w-xs text-center space-y-4">
                         <div className="text-4xl">🗑️</div>
                         <p className="font-bold text-gray-900">حذف الملاحظة؟</p>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Head, router } from "@inertiajs/react";
 import { useLanguage } from "../../utils/language";
 
@@ -77,22 +77,39 @@ const WARRANTY_RECURRENCE = [
 ];
 
 const AddWarrantyModal = ({ onClose, onAdd, t, isAr }) => {
-    const [form, setForm] = useState({ titleAr: "", titleEn: "", customTitle: "", icon: "🛡️", recurrence: "", provider: "", notes: "", cost: "" });
+    const [titleAr,    setTitleAr]    = useState("");
+    const [titleEn,    setTitleEn]    = useState("");
+    const [icon,       setIcon]       = useState("🛡️");
+    const [recurrence, setRecurrence] = useState("");
 
-    const isOther = form.titleAr === "أخرى";
+    const customTitleRef = useRef(null);
+    const providerRef    = useRef(null);
+    const costRef        = useRef(null);
+    const notesRef       = useRef(null);
+
+    const isOther = titleAr === "أخرى";
 
     const handleTypeSelect = (e) => {
         const selected = WARRANTY_TYPES.find(w => w.ar === e.target.value);
-        if (selected) setForm({ ...form, titleAr: selected.ar, titleEn: selected.en, icon: selected.icon, customTitle: "" });
+        if (selected) { setTitleAr(selected.ar); setTitleEn(selected.en); setIcon(selected.icon); }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!form.titleAr) return;
-        if (isOther && !form.customTitle.trim()) return;
-        const finalTitleAr = isOther ? form.customTitle : form.titleAr;
-        const finalTitleEn = isOther ? form.customTitle : form.titleEn;
-        onAdd({ ...form, titleAr: finalTitleAr, titleEn: finalTitleEn });
+        if (!titleAr) return;
+        const customTitle = customTitleRef.current?.value?.trim() || "";
+        if (isOther && !customTitle) return;
+        const finalTitleAr = isOther ? customTitle : titleAr;
+        const finalTitleEn = isOther ? customTitle : titleEn;
+        onAdd({
+            titleAr:    finalTitleAr,
+            titleEn:    finalTitleEn,
+            icon,
+            recurrence,
+            provider:   providerRef.current?.value?.trim() || "",
+            cost:       costRef.current?.value?.trim()     || "",
+            notes:      notesRef.current?.value?.trim()    || "",
+        });
     };
 
     const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400";
@@ -109,12 +126,7 @@ const AddWarrantyModal = ({ onClose, onAdd, t, isAr }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             {t("نوع الضمان", "Warranty Type")} <span className="text-[#800000]">*</span>
                         </label>
-                        <select
-                            value={form.titleAr}
-                            onChange={handleTypeSelect}
-                            className={inputClass}
-                            required
-                        >
+                        <select value={titleAr} onChange={handleTypeSelect} className={inputClass} required>
                             <option value="">{t("اختر نوع الضمان", "Select warranty type")}</option>
                             {WARRANTY_TYPES.map(w => (
                                 <option key={w.ar} value={w.ar}>{w.icon} {isAr ? w.ar : w.en}</option>
@@ -128,9 +140,9 @@ const AddWarrantyModal = ({ onClose, onAdd, t, isAr }) => {
                                 {t("عنوان الضمان", "Warranty Title")} <span className="text-[#800000]">*</span>
                             </label>
                             <input
+                                ref={customTitleRef}
                                 type="text"
-                                value={form.customTitle}
-                                onChange={(e) => setForm({ ...form, customTitle: e.target.value })}
+                                defaultValue=""
                                 placeholder={t("مثال: ضمان المحرك", "e.g. Engine Warranty")}
                                 className={inputClass}
                                 required
@@ -142,11 +154,7 @@ const AddWarrantyModal = ({ onClose, onAdd, t, isAr }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             {t("التكرار", "Recurrence")}
                         </label>
-                        <select
-                            value={form.recurrence}
-                            onChange={(e) => setForm({ ...form, recurrence: e.target.value })}
-                            className={inputClass}
-                        >
+                        <select value={recurrence} onChange={(e) => setRecurrence(e.target.value)} className={inputClass}>
                             <option value="">{t("اختر التكرار", "Select recurrence")}</option>
                             {WARRANTY_RECURRENCE.map(o => (
                                 <option key={o.value} value={o.value}>{isAr ? o.ar : o.en}</option>
@@ -158,39 +166,19 @@ const AddWarrantyModal = ({ onClose, onAdd, t, isAr }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             {t("الجهة", "Provider")}
                         </label>
-                        <input
-                            type="text"
-                            value={form.provider}
-                            onChange={(e) => setForm({ ...form, provider: e.target.value })}
-                            placeholder={t("مثال: Toyota Abu Dhabi", "e.g. Toyota Abu Dhabi")}
-                            className={inputClass}
-                        />
+                        <input ref={providerRef} type="text" defaultValue="" placeholder={t("مثال: Toyota Abu Dhabi", "e.g. Toyota Abu Dhabi")} className={inputClass} />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            التكلفة
-                        </label>
-                        <input
-                            type="text"
-                            value={form.cost}
-                            onChange={(e) => setForm({ ...form, cost: e.target.value })}
-                            placeholder="ae 1000"
-                            className={inputClass}
-                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">التكلفة</label>
+                        <input ref={costRef} type="text" defaultValue="" placeholder="ae 1000" className={inputClass} />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             {t("ملاحظات", "Notes")}
                         </label>
-                        <input
-                            type="text"
-                            value={form.notes}
-                            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                            placeholder="..."
-                            className={inputClass}
-                        />
+                        <input ref={notesRef} type="text" defaultValue="" placeholder="..." className={inputClass} />
                     </div>
 
                     <button

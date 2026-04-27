@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Head, router } from "@inertiajs/react";
 
 const BackIcon = () => (
@@ -117,20 +117,25 @@ function ReminderCard({ reminder, vehicles, onComplete, onDelete, onEdit }) {
 function ReminderModal({ vehicles, reminder, onClose }) {
     const isEdit = !!reminder;
     const [vehicleId, setVehicleId] = useState(reminder?.vehicleId ?? (vehicles[0]?.id ?? ""));
-    const [titleAr, setTitleAr]     = useState(reminder?.titleAr ?? "");
-    const [notes, setNotes]         = useState(reminder?.notes ?? "");
-    const [dueDate, setDueDate]     = useState(reminder?.dueDate ?? "");
-    const [dueTime, setDueTime]     = useState(reminder?.dueTime ?? "");
     const [saving, setSaving]       = useState(false);
+
+    const titleRef   = useRef(null);
+    const notesRef   = useRef(null);
+    const dueDateRef = useRef(null);
+    const dueTimeRef = useRef(null);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!titleAr.trim() || !vehicleId) return;
+        const titleAr = titleRef.current?.value?.trim()   || "";
+        const notes   = notesRef.current?.value?.trim()   || "";
+        const dueDate = dueDateRef.current?.value          || "";
+        const dueTime = dueTimeRef.current?.value          || "";
+        if (!titleAr || !vehicleId) return;
         setSaving(true);
         const payload = {
             vehicle_id: vehicleId,
-            title_ar:   titleAr.trim(),
-            notes:      notes.trim() || null,
+            title_ar:   titleAr,
+            notes:      notes   || null,
             due_date:   dueDate || null,
             due_time:   dueTime || null,
         };
@@ -173,9 +178,9 @@ function ReminderModal({ vehicles, reminder, onClose }) {
                     <div>
                         <label className="text-xs text-gray-500 mb-1 block">العنوان</label>
                         <input
+                            ref={titleRef}
                             type="text"
-                            value={titleAr}
-                            onChange={e => setTitleAr(e.target.value)}
+                            defaultValue={reminder?.titleAr ?? ""}
                             placeholder="مثال: تغيير الزيت"
                             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:outline-none focus:border-[#800000]"
                             required
@@ -185,8 +190,8 @@ function ReminderModal({ vehicles, reminder, onClose }) {
                     <div>
                         <label className="text-xs text-gray-500 mb-1 block">الوصف (اختياري)</label>
                         <textarea
-                            value={notes}
-                            onChange={e => setNotes(e.target.value)}
+                            ref={notesRef}
+                            defaultValue={reminder?.notes ?? ""}
                             placeholder="أضف تفاصيل أو ملاحظات..."
                             rows={3}
                             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:outline-none focus:border-[#800000] resize-none"
@@ -197,18 +202,18 @@ function ReminderModal({ vehicles, reminder, onClose }) {
                         <div>
                             <label className="text-xs text-gray-500 mb-1 block">التاريخ (اختياري)</label>
                             <input
+                                ref={dueDateRef}
                                 type="date"
-                                value={dueDate}
-                                onChange={e => setDueDate(e.target.value)}
+                                defaultValue={reminder?.dueDate ?? ""}
                                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:outline-none focus:border-[#800000]"
                             />
                         </div>
                         <div>
                             <label className="text-xs text-gray-500 mb-1 block">الوقت (اختياري)</label>
                             <input
+                                ref={dueTimeRef}
                                 type="time"
-                                value={dueTime}
-                                onChange={e => setDueTime(e.target.value)}
+                                defaultValue={reminder?.dueTime ?? ""}
                                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 focus:outline-none focus:border-[#800000]"
                             />
                         </div>
@@ -216,7 +221,7 @@ function ReminderModal({ vehicles, reminder, onClose }) {
 
                     <button
                         type="submit"
-                        disabled={saving || !titleAr.trim()}
+                        disabled={saving}
                         className="w-full py-3 bg-[#800000] text-white rounded-xl font-bold text-sm active:bg-[#600000] disabled:opacity-50 mt-2"
                     >
                         {saving ? "جاري الحفظ..." : isEdit ? "حفظ التعديلات" : "إضافة التذكير"}

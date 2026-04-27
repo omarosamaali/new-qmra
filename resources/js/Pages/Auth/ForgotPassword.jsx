@@ -1,5 +1,5 @@
 import { Head } from "@inertiajs/react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
 
 const LANG_KEY = "app_lang";
@@ -66,33 +66,24 @@ export default function ForgotPassword() {
     const t    = T[lang];
     const isAr = lang === "ar";
 
-    const [step, setStep]         = useState(1); // 1 = enter email, 2 = enter code+new password, 3 = done
-    const [email, setEmail]       = useState("");
-    const [code, setCode]         = useState("");
-    const [password, setPassword] = useState("");
-    const [confirm, setConfirm]   = useState("");
-    const [loading, setLoading]   = useState(false);
-    const [error, setError]       = useState("");
-    const [success, setSuccess]   = useState("");
+    const [step, setStep]       = useState(1);
+    const [sentEmail, setSentEmail] = useState(""); // stored after step 1 to use in step 2
+    const [loading, setLoading] = useState(false);
+    const [error, setError]     = useState("");
+    const [success, setSuccess] = useState("");
 
-    const validate1 = () => {
-        if (!email.trim()) { setError(t.reqEmail); return false; }
-        setError(""); return true;
-    };
-
-    const validate2 = () => {
-        if (!code.trim())        { setError(t.reqCode);     return false; }
-        if (password.length < 8) { setError(t.reqPassword); return false; }
-        if (!confirm.trim())     { setError(t.reqConfirm);  return false; }
-        if (password !== confirm){ setError(t.mismatch);    return false; }
-        setError(""); return true;
-    };
+    const emailRef    = useRef(null);
+    const codeRef     = useRef(null);
+    const passwordRef = useRef(null);
+    const confirmRef  = useRef(null);
 
     const sendCode = async () => {
-        if (!validate1()) return;
+        const email = emailRef.current?.value?.trim() || "";
+        if (!email) { setError(t.reqEmail); return; }
         setLoading(true); setError(""); setSuccess("");
         try {
             const res = await axios.post("/forgot-password/send-code", { email });
+            setSentEmail(email);
             setSuccess(res.data.message || t.codeSent);
             setStep(2);
         } catch (e) {
@@ -103,11 +94,17 @@ export default function ForgotPassword() {
     };
 
     const resetPassword = async () => {
-        if (!validate2()) return;
+        const code     = codeRef.current?.value?.trim() || "";
+        const password = passwordRef.current?.value     || "";
+        const confirm  = confirmRef.current?.value      || "";
+        if (!code)              { setError(t.reqCode);     return; }
+        if (password.length < 8){ setError(t.reqPassword); return; }
+        if (!confirm)           { setError(t.reqConfirm);  return; }
+        if (password !== confirm){ setError(t.mismatch);   return; }
         setLoading(true); setError(""); setSuccess("");
         try {
             const res = await axios.post("/forgot-password/reset", {
-                email,
+                email:                 sentEmail,
                 code,
                 password,
                 password_confirmation: confirm,
@@ -161,17 +158,18 @@ export default function ForgotPassword() {
                         </div>
                     )}
 
-                    {/* ── Step 1: email ── */}
+                    {/* Step 1: email */}
                     {step === 1 && (
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.email}</label>
                                 <input
+                                    ref={emailRef}
                                     type="email"
-                                    value={email}
-                                    onChange={e => { setEmail(e.target.value); setError(""); }}
+                                    defaultValue=""
                                     placeholder="example@email.com"
                                     autoComplete="email"
+                                    onChange={() => setError("")}
                                     className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400"
                                 />
                             </div>
@@ -185,28 +183,30 @@ export default function ForgotPassword() {
                         </div>
                     )}
 
-                    {/* ── Step 2: code + new password ── */}
+                    {/* Step 2: code + new password */}
                     {step === 2 && (
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.code}</label>
                                 <input
+                                    ref={codeRef}
                                     type="text"
-                                    value={code}
-                                    onChange={e => { setCode(e.target.value); setError(""); }}
+                                    defaultValue=""
                                     placeholder="123456"
                                     inputMode="numeric"
+                                    onChange={() => setError("")}
                                     className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-center tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.password}</label>
                                 <input
+                                    ref={passwordRef}
                                     type="password"
-                                    value={password}
-                                    onChange={e => { setPassword(e.target.value); setError(""); }}
+                                    defaultValue=""
                                     placeholder="••••••••"
                                     autoComplete="new-password"
+                                    onChange={() => setError("")}
                                     className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400"
                                 />
                                 <p className="text-gray-400 text-xs mt-1 text-center">{t.passwordHint}</p>
@@ -214,11 +214,12 @@ export default function ForgotPassword() {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5 text-center">{t.confirm}</label>
                                 <input
+                                    ref={confirmRef}
                                     type="password"
-                                    value={confirm}
-                                    onChange={e => { setConfirm(e.target.value); setError(""); }}
+                                    defaultValue=""
                                     placeholder="••••••••"
                                     autoComplete="new-password"
+                                    onChange={() => setError("")}
                                     className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400"
                                 />
                             </div>
@@ -239,7 +240,7 @@ export default function ForgotPassword() {
                         </div>
                     )}
 
-                    {/* ── Step 3: success ── */}
+                    {/* Step 3: success */}
                     {step === 3 && (
                         <div className="flex flex-col items-center gap-4">
                             <div className="text-6xl">✅</div>

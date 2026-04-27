@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Head, router } from "@inertiajs/react";
 
 const BackIcon = () => (
@@ -31,6 +31,7 @@ const T = {
         logout: "تسجيل الخروج",
         signedAs: "مسجّل دخول بـ",
         saving: "جاري الحفظ...",
+        wrongPhrase: "الجملة غير صحيحة",
     },
     en: {
         pageTitle: "My Account - Qumra",
@@ -55,78 +56,52 @@ const T = {
         logout: "Sign Out",
         signedAs: "Signed in as",
         saving: "Saving...",
+        wrongPhrase: "Phrase is incorrect",
     },
 };
 
 export default function Profile({ user }) {
     const [lang, setLang] = useState("ar");
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing]   = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
-    const [typed, setTyped] = useState("");
-    const [processing, setProcessing] = useState(false);
+    const [processing, setProcessing]   = useState(false);
+    const [deleteError, setDeleteError] = useState("");
 
-    const [formData, setFormData] = useState({
-        name: user.name || "",
-        email: user.email || "",
-    });
+    const nameRef   = useRef(null);
+    const emailRef  = useRef(null);
+    const deleteRef = useRef(null);
 
-    const t = T[lang];
+    const t    = T[lang];
     const isAr = lang === "ar";
-    const canDelete = typed.trim() === t.confirmKeyword;
 
-    // تسجيل الخروج
-    const handleLogout = () => {
-        router.post('/logout');
-    };
+    const handleLogout = () => router.post('/logout');
 
-    // بدء وضع التعديل
-    const handleEditProfile = () => {
-        setIsEditing(true);
-        setFormData({
-            name: user.name || "",
-            email: user.email || "",
-        });
-    };
-
-    // حفظ التعديلات
     const handleSaveProfile = () => {
+        const name  = nameRef.current?.value?.trim()  || "";
+        const email = emailRef.current?.value?.trim() || "";
         setProcessing(true);
-
-        router.put('/profile', formData, {
-            onSuccess: () => {
-                setIsEditing(false);
-            },
-            onError: (errors) => {
-                console.error(errors);
-                // يمكنك إضافة رسائل خطأ للمستخدم هنا لاحقاً
-            },
-            onFinish: () => setProcessing(false),
+        router.put('/profile', { name, email }, {
+            onSuccess: () => setIsEditing(false),
+            onFinish:  () => setProcessing(false),
         });
     };
 
-    // إلغاء التعديل
-    const handleCancelEdit = () => {
-        setIsEditing(false);
-    };
-
-    // حذف الحساب
     const handleDelete = () => {
-        if (!canDelete) return;
-
+        const typed = deleteRef.current?.value?.trim() || "";
+        if (typed !== t.confirmKeyword) { setDeleteError(t.wrongPhrase); return; }
+        setDeleteError("");
+        setProcessing(true);
         router.delete('/profile', {
-            onBefore: () => setProcessing(true),
-            onSuccess: () => { },
-            onFinish: () => setProcessing(false),
+            onBefore:  () => setProcessing(true),
+            onSuccess: () => {},
+            onFinish:  () => setProcessing(false),
         });
     };
 
     return (
         <>
             <Head title={t.pageTitle} />
-            <div
-                className="min-h-screen bg-gray-100 flex justify-center"
-                dir={isAr ? "rtl" : "ltr"}
-            >
+            <div className="min-h-screen bg-gray-100 flex justify-center" dir={isAr ? "rtl" : "ltr"}>
                 <div className="w-full max-w-sm min-h-screen flex flex-col bg-gray-100">
                     {/* Header */}
                     <div className="bg-white flex items-center justify-between sticky top-0 z-20 shadow-sm safe-header">
@@ -137,9 +112,7 @@ export default function Profile({ user }) {
                             >
                                 <BackIcon />
                             </button>
-                            <h1 className="font-bold text-gray-900 text-lg">
-                                {t.header}
-                            </h1>
+                            <h1 className="font-bold text-gray-900 text-lg">{t.header}</h1>
                         </div>
                         <button
                             onClick={() => setLang(isAr ? "en" : "ar")}
@@ -151,36 +124,27 @@ export default function Profile({ user }) {
 
                     <div className="flex-1 overflow-y-auto no-scrollbar">
                         <div className="px-4 pt-6 pb-10 space-y-4">
-                            {/* Avatar + name */}
+                            {/* Avatar */}
                             <div className="bg-white rounded-3xl p-6 flex flex-col items-center text-center shadow-sm">
                                 <div className="w-16 h-16 rounded-full bg-[#800000] flex items-center justify-center text-white text-2xl font-bold mb-3">
                                     {user.name.charAt(0)}
                                 </div>
-                                <p className="font-bold text-gray-900 text-lg">
-                                    {isEditing ? formData.name : user.name}
-                                </p>
-                                <p className="text-sm text-gray-400 mt-0.5">
-                                    {t.signedAs} {user.email}
-                                </p>
+                                <p className="font-bold text-gray-900 text-lg">{user.name}</p>
+                                <p className="text-sm text-gray-400 mt-0.5">{t.signedAs} {user.email}</p>
                             </div>
 
-                            {/* Account details - Edit Mode */}
+                            {/* Account details */}
                             <div className="bg-white rounded-3xl p-6 shadow-sm">
-                                <p className="font-bold text-gray-900 mb-5">
-                                    {t.account}
-                                </p>
+                                <p className="font-bold text-gray-900 mb-5">{t.account}</p>
 
                                 <div className="space-y-6">
-                                    {/* Name Field */}
                                     <div>
-                                        <label className="text-xs text-gray-400 block mb-1.5">
-                                            {t.name}
-                                        </label>
+                                        <label className="text-xs text-gray-400 block mb-1.5">{t.name}</label>
                                         {isEditing ? (
                                             <input
+                                                ref={nameRef}
                                                 type="text"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                defaultValue={user.name}
                                                 className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000]"
                                                 dir={isAr ? "rtl" : "ltr"}
                                             />
@@ -188,31 +152,25 @@ export default function Profile({ user }) {
                                             <p className="text-gray-800 font-medium">{user.name}</p>
                                         )}
                                     </div>
-
-                                    {/* Email Field */}
                                     <div>
-                                        <label className="text-xs text-gray-400 block mb-1.5">
-                                            {t.email}
-                                        </label>
+                                        <label className="text-xs text-gray-400 block mb-1.5">{t.email}</label>
                                         {isEditing ? (
                                             <input
+                                                ref={emailRef}
                                                 type="email"
-                                                value={formData.email}
-                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                defaultValue={user.email}
                                                 className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000]"
                                             />
                                         ) : (
                                             <p className="text-gray-800 font-medium">{user.email}</p>
                                         )}
                                     </div>
-
                                 </div>
 
-                                {/* Action Buttons */}
                                 {isEditing ? (
                                     <div className="flex gap-3 mt-8">
                                         <button
-                                            onClick={handleCancelEdit}
+                                            onClick={() => setIsEditing(false)}
                                             className="flex-1 py-3.5 rounded-2xl border border-gray-300 text-gray-700 font-medium active:opacity-80"
                                         >
                                             {t.cancel}
@@ -220,17 +178,14 @@ export default function Profile({ user }) {
                                         <button
                                             onClick={handleSaveProfile}
                                             disabled={processing}
-                                            className={`flex-1 py-3.5 rounded-2xl text-sm font-semibold transition-all ${processing
-                                                    ? "bg-gray-400 text-white cursor-not-allowed"
-                                                    : "bg-[#800000] text-white active:opacity-80"
-                                                }`}
+                                            className={`flex-1 py-3.5 rounded-2xl text-sm font-semibold transition-all ${processing ? "bg-gray-400 text-white cursor-not-allowed" : "bg-[#800000] text-white active:opacity-80"}`}
                                         >
                                             {processing ? t.saving : t.saveChanges}
                                         </button>
                                     </div>
                                 ) : (
                                     <button
-                                        onClick={handleEditProfile}
+                                        onClick={() => setIsEditing(true)}
                                         className="mt-6 w-full py-3.5 rounded-2xl border border-[#800000] text-[#800000] text-sm font-semibold active:opacity-80 transition-opacity"
                                     >
                                         {t.editProfile}
@@ -238,7 +193,7 @@ export default function Profile({ user }) {
                                 )}
                             </div>
 
-                            {/* Sign out button */}
+                            {/* Sign out */}
                             <button
                                 onClick={handleLogout}
                                 className="w-full bg-white rounded-3xl p-4 shadow-sm flex items-center gap-3 active:opacity-80 transition-opacity"
@@ -258,10 +213,7 @@ export default function Profile({ user }) {
                                     <p className="font-semibold text-gray-800 text-sm mb-1">{t.deleteTitle}</p>
                                     <p className="text-xs text-gray-400 leading-relaxed mb-4">{t.deleteDesc}</p>
                                     <button
-                                        onClick={() => {
-                                            setShowConfirm(true);
-                                            setTyped("");
-                                        }}
+                                        onClick={() => { setShowConfirm(true); setDeleteError(""); }}
                                         className="w-full py-3 rounded-2xl bg-red-600 text-white text-sm font-bold active:opacity-80 transition-opacity"
                                     >
                                         {t.deleteBtn}
@@ -276,7 +228,7 @@ export default function Profile({ user }) {
             {/* Confirm Delete Modal */}
             {showConfirm && (
                 <div className="fixed inset-0 z-50 bg-black/60 flex items-end justify-center">
-                    <div className="w-full max-w-sm bg-white rounded-t-3xl p-6 pb-10 space-y-4 animate-[slideUp_.25s_ease]">
+                    <div className="w-full max-w-sm bg-white rounded-t-3xl p-6 pb-10 space-y-4">
                         <div className="text-center">
                             <p className="font-bold text-gray-900 text-base">{t.confirmTitle}</p>
                             <p className="text-xs text-gray-400 mt-2 leading-relaxed">{t.confirmDesc}</p>
@@ -284,21 +236,20 @@ export default function Profile({ user }) {
                         <div>
                             <p className="text-xs text-gray-500 mb-2">{t.typeConfirm}</p>
                             <input
+                                ref={deleteRef}
                                 type="text"
-                                value={typed}
-                                onChange={(e) => setTyped(e.target.value)}
+                                defaultValue=""
                                 placeholder={t.placeholder}
+                                onChange={() => setDeleteError("")}
                                 className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
                                 dir={isAr ? "rtl" : "ltr"}
                             />
+                            {deleteError && <p className="text-red-500 text-xs mt-1 text-center">{deleteError}</p>}
                         </div>
                         <button
                             onClick={handleDelete}
-                            disabled={!canDelete || processing}
-                            className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all ${canDelete && !processing
-                                    ? "bg-red-600 text-white active:opacity-80"
-                                    : "bg-gray-100 text-gray-300 cursor-not-allowed"
-                                }`}
+                            disabled={processing}
+                            className={`w-full py-3.5 rounded-2xl text-sm font-bold transition-all ${processing ? "bg-gray-100 text-gray-300 cursor-not-allowed" : "bg-red-600 text-white active:opacity-80"}`}
                         >
                             {processing ? (isAr ? "جارٍ الحذف..." : "Deleting...") : t.confirmDelete}
                         </button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 
 const BackIcon = () => (
@@ -9,17 +9,25 @@ const BackIcon = () => (
 
 export default function Contact() {
     const { flash = {} } = usePage().props;
-    const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+    const [subject, setSubject] = useState("");
     const [sending, setSending] = useState(false);
-    const [sent, setSent] = useState(false);
+    const [sent, setSent]       = useState(false);
 
-    // عرض رسالة النجاح لما يرجع الـ flash
+    const nameRef    = useRef(null);
+    const emailRef   = useRef(null);
+    const messageRef = useRef(null);
+
     if (flash.contact_sent && !sent) setSent(true);
 
     const handleSubmit = (e) => {
         e.preventDefault();
         setSending(true);
-        router.post('/contact', form, {
+        router.post('/contact', {
+            name:    nameRef.current?.value?.trim()    || "",
+            email:   emailRef.current?.value?.trim()   || "",
+            subject: subject,
+            message: messageRef.current?.value?.trim() || "",
+        }, {
             preserveScroll: true,
             onFinish: () => setSending(false),
         });
@@ -34,7 +42,6 @@ export default function Contact() {
             <div className="min-h-screen bg-gray-100 flex justify-center" dir="rtl">
                 <div className="w-full max-w-sm min-h-screen flex flex-col bg-gray-100">
 
-                    {/* Header */}
                     <div className="bg-white flex items-center gap-3 sticky top-0 z-20 shadow-sm safe-header">
                         <button
                             onClick={() => router.get("/")}
@@ -48,7 +55,6 @@ export default function Contact() {
                     <div className="flex-1 overflow-y-auto no-scrollbar">
                         <div className="px-4 pt-5 pb-10 space-y-5">
 
-                            {/* Contact form */}
                             <div className="bg-white rounded-3xl p-4 shadow-sm">
                                 <p className="font-bold text-gray-900 px-1 pb-4">أرسل لنا رسالة</p>
 
@@ -58,7 +64,7 @@ export default function Contact() {
                                         <p className="font-bold text-gray-900">تم إرسال رسالتك!</p>
                                         <p className="text-sm text-gray-400">سنتواصل معك في أقرب وقت</p>
                                         <button
-                                            onClick={() => { setSent(false); setForm({ name: "", email: "", subject: "", message: "" }); }}
+                                            onClick={() => { setSent(false); setSubject(""); }}
                                             className="mt-3 text-xs text-[#800000] font-semibold"
                                         >
                                             إرسال رسالة أخرى
@@ -68,26 +74,26 @@ export default function Contact() {
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         <div>
                                             <label className={labelClass}>الاسم</label>
-                                            <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="اسمك الكامل" className={inputClass} required />
+                                            <input ref={nameRef} type="text" defaultValue="" placeholder="اسمك الكامل" className={inputClass} required />
                                         </div>
                                         <div>
                                             <label className={labelClass}>البريد الإلكتروني</label>
-                                            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="example@email.com" className={inputClass} required />
+                                            <input ref={emailRef} type="email" defaultValue="" placeholder="example@email.com" className={inputClass} required />
                                         </div>
                                         <div>
                                             <label className={labelClass}>الموضوع</label>
-                                            <select value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className={inputClass} required>
+                                            <select value={subject} onChange={(e) => setSubject(e.target.value)} className={inputClass} required>
                                                 <option value="">اختر الموضوع</option>
-                                                    <option value="دعم تقني">دعم تقني</option>
-                                                    <option value="فواتير واشتراكات">فواتير واشتراكات</option>
-                                                    <option value="اقتراح أو ملاحظة">اقتراح أو ملاحظة</option>
-                                                    <option value="شراكة تجارية">شراكة تجارية</option>
-                                                    <option value="أخرى">أخرى</option>
+                                                <option value="دعم تقني">دعم تقني</option>
+                                                <option value="فواتير واشتراكات">فواتير واشتراكات</option>
+                                                <option value="اقتراح أو ملاحظة">اقتراح أو ملاحظة</option>
+                                                <option value="شراكة تجارية">شراكة تجارية</option>
+                                                <option value="أخرى">أخرى</option>
                                             </select>
                                         </div>
                                         <div>
                                             <label className={labelClass}>الرسالة</label>
-                                            <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="اكتب رسالتك هنا..." rows={4} className={`${inputClass} resize-none`} required />
+                                            <textarea ref={messageRef} defaultValue="" placeholder="اكتب رسالتك هنا..." rows={4} className={`${inputClass} resize-none`} required />
                                         </div>
                                         <button type="submit" disabled={sending} className="w-full bg-[#800000] text-white rounded-xl py-3.5 font-bold text-sm active:opacity-90 disabled:opacity-50 transition-opacity">
                                             {sending ? "جاري الإرسال..." : "إرسال الرسالة"}

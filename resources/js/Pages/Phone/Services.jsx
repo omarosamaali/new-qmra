@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -50,26 +50,32 @@ const RECURRENCE_OPTIONS = [
 ];
 
 const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }) => {
-    const [form, setForm] = useState({ serviceId: "", recurrence: "", notes: "", cost: "" });
+    const [serviceId,  setServiceId]  = useState("");
+    const [recurrence, setRecurrence] = useState("");
     const [submitting, setSubmitting] = useState(false);
+
+    const costRef  = useRef(null);
+    const notesRef = useRef(null);
 
     const availableServices = allServices.filter((s) => !existingServiceIds.includes(s.id));
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!form.serviceId || submitting) return;
-        const rec = RECURRENCE_OPTIONS.find(o => o.value === form.recurrence);
+        if (!serviceId || submitting) return;
+        const rec   = RECURRENCE_OPTIONS.find(o => o.value === recurrence);
+        const cost  = costRef.current?.value?.trim()  || null;
+        const notes = notesRef.current?.value?.trim() || null;
         setSubmitting(true);
         router.post(
             "/services",
             {
                 vehicle_id:    vehicleId,
-                service_id:    Number(form.serviceId),
+                service_id:    Number(serviceId),
                 interval_km:   rec?.km   ?? null,
                 interval_days: rec?.days ?? null,
                 due_date:      null,
-                cost:          form.cost  || null,
-                notes:         form.notes || null,
+                cost:          cost  || null,
+                notes:         notes || null,
             },
             { onFinish: () => { setSubmitting(false); onClose(); } }
         );
@@ -95,12 +101,7 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                 نوع الخدمة <span className="text-[#800000]">*</span>
                             </label>
-                            <select
-                                value={form.serviceId}
-                                onChange={(e) => setForm({ ...form, serviceId: e.target.value })}
-                                className={inputClass}
-                                required
-                            >
+                            <select value={serviceId} onChange={(e) => setServiceId(e.target.value)} className={inputClass} required>
                                 <option value="">اختر خدمة</option>
                                 {availableServices.map((s) => (
                                     <option key={s.id} value={s.id}>{s.icon} {s.nameAr}</option>
@@ -112,12 +113,7 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                 التكرار <span className="text-[#800000]">*</span>
                             </label>
-                            <select
-                                value={form.recurrence}
-                                onChange={(e) => setForm({ ...form, recurrence: e.target.value })}
-                                className={inputClass}
-                                required
-                            >
+                            <select value={recurrence} onChange={(e) => setRecurrence(e.target.value)} className={inputClass} required>
                                 <option value="">اختر التكرار</option>
                                 {RECURRENCE_OPTIONS.map(o => (
                                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -127,24 +123,12 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">التكلفة</label>
-                            <input
-                                type="text"
-                                value={form.cost}
-                                onChange={(e) => setForm({ ...form, cost: e.target.value })}
-                                placeholder="1000 ر.س"
-                                className={inputClass}
-                            />
+                            <input ref={costRef} type="text" defaultValue="" placeholder="1000 ر.س" className={inputClass} />
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">ملاحظات</label>
-                            <input
-                                type="text"
-                                value={form.notes}
-                                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                                placeholder="ملاحظات اختيارية"
-                                className={inputClass}
-                            />
+                            <input ref={notesRef} type="text" defaultValue="" placeholder="ملاحظات اختيارية" className={inputClass} />
                         </div>
 
                         <button
