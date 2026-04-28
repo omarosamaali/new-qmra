@@ -127,6 +127,9 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
     const [model, setModel]       = useState("");
     const [color, setColor]       = useState("#1A1A1A");
     const [submitting, setSubmitting] = useState(false);
+    // Step 1 values saved before that step unmounts
+    const [savedYear, setSavedYear]   = useState("");
+    const [savedPlate, setSavedPlate] = useState("");
 
     const yearRef      = useRef(null);
     const plateRef     = useRef(null);
@@ -140,12 +143,19 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
         return true;
     };
 
+    const goNext = () => {
+        // Capture step-1 ref values before the inputs are unmounted
+        setSavedYear(yearRef.current?.value || "");
+        setSavedPlate(plateRef.current?.value?.trim() || "");
+        setStep(s => s + 1);
+    };
+
     const atLimit = carsLimit > 0 && vehicleCount >= carsLimit;
 
     const handleSubmit = () => {
         if (submitting || atLimit) return;
-        const year               = yearRef.current?.value        || "";
-        const plateNumber        = plateRef.current?.value?.trim() || "";
+        const year               = savedYear;
+        const plateNumber        = savedPlate;
         const currentKm          = kmRef.current?.value           || "";
         const registrationExpiry = regExpiryRef.current?.value    || null;
         const insuranceExpiry    = insExpiryRef.current?.value    || null;
@@ -225,7 +235,7 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
                             <div className="fixed bottom-0 right-0 left-0 flex justify-center pointer-events-none">
                                 <div className="w-full max-w-sm px-4 pb-8 pointer-events-auto safe-bottom">
                                     <button
-                                        onClick={() => step < 1 ? setStep(s => s + 1) : handleSubmit()}
+                                        onClick={() => step < 1 ? goNext() : handleSubmit()}
                                         disabled={!canNext() || submitting}
                                         className={`w-full py-4 rounded-2xl font-bold text-sm transition-all duration-150 shadow-lg ${
                                             canNext() && !submitting ? "bg-[#800000] text-white active:opacity-90" : "bg-gray-200 text-gray-400 cursor-not-allowed"
