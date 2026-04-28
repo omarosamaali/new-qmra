@@ -152,7 +152,6 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
     const atLimit = carsLimit > 0 && vehicleCount >= carsLimit;
 
     const handleSubmit = () => {
-        if (submitting || atLimit) return;
         const year               = savedYearRef.current;
         const plateNumber        = savedPlateRef.current;
         const currentKm          = kmRef.current?.value           || "";
@@ -160,7 +159,10 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
         const insuranceExpiry    = insExpiryRef.current?.value    || null;
         const notes              = notesRef.current?.value?.trim() || "";
 
-        if (!year || !plateNumber || !currentKm) return;
+        console.log("AddVehicle submit →", { submitting, atLimit, year, plateNumber, currentKm, brand, model });
+
+        if (submitting || atLimit) { console.log("blocked: submitting or atLimit"); return; }
+        if (!year || !plateNumber || !currentKm) { console.log("blocked: missing fields"); return; }
 
         const brandObj = brandsData.find(b => b.en === brand);
         const modelObj = brandObj?.models.find(m => m.en === model);
