@@ -10,6 +10,16 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.jsx'])
         @inertiaHead
+        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+        <script>
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            OneSignalDeferred.push(async function(OneSignal) {
+                await OneSignal.init({ appId: "d931525f-d834-404e-ac9d-2637743cca16" });
+                @auth
+                OneSignal.login("{{ Auth::id() }}");
+                @endauth
+            });
+        </script>
     </head>
     <body class="font-sans antialiased">
         @inertia
