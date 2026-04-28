@@ -32,6 +32,13 @@ const T = {
         signedAs: "مسجّل دخول بـ",
         saving: "جاري الحفظ...",
         wrongPhrase: "الجملة غير صحيحة",
+        subscription: "الباقة الحالية",
+        subActive: "نشطة",
+        subExpires: "تنتهي في",
+        cars: "مركبات",
+        addons: "إضافات",
+        upgradePlan: "ترقية الباقة",
+        noSub: "لا توجد باقة نشطة",
     },
     en: {
         pageTitle: "My Account - Qumra",
@@ -57,10 +64,22 @@ const T = {
         signedAs: "Signed in as",
         saving: "Saving...",
         wrongPhrase: "Phrase is incorrect",
+        subscription: "Current Plan",
+        subActive: "Active",
+        subExpires: "Expires",
+        cars: "vehicles",
+        addons: "add-ons",
+        upgradePlan: "Upgrade Plan",
+        noSub: "No active subscription",
     },
 };
 
-export default function Profile({ user }) {
+const formatDate = (iso) => {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
+};
+
+export default function Profile({ user, subscription }) {
     const [lang, setLang] = useState("ar");
     const [isEditing, setIsEditing]   = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -131,6 +150,48 @@ export default function Profile({ user }) {
                                 </div>
                                 <p className="font-bold text-gray-900 text-lg">{user.name}</p>
                                 <p className="text-sm text-gray-400 mt-0.5">{t.signedAs} {user.email}</p>
+                            </div>
+
+                            {/* Subscription card */}
+                            <div className="bg-white rounded-3xl p-5 shadow-sm">
+                                <p className="font-bold text-gray-900 mb-4">{t.subscription}</p>
+                                {subscription ? (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-semibold text-gray-800">
+                                                {subscription.title || "—"}
+                                            </span>
+                                            <span className="text-xs font-bold text-white bg-green-500 px-2.5 py-1 rounded-full">
+                                                {t.subActive}
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <div className="flex-1 bg-gray-50 rounded-2xl p-3 text-center">
+                                                <p className="text-lg font-bold text-[#800000]">{subscription.cars_count ?? 1}</p>
+                                                <p className="text-xs text-gray-400">{t.cars}</p>
+                                            </div>
+                                            <div className="flex-1 bg-gray-50 rounded-2xl p-3 text-center">
+                                                <p className="text-lg font-bold text-[#800000]">{subscription.addons_count ?? 0}</p>
+                                                <p className="text-xs text-gray-400">{t.addons}</p>
+                                            </div>
+                                        </div>
+                                        {subscription.expires_at && (
+                                            <p className="text-xs text-gray-400 text-center">
+                                                {t.subExpires}: {formatDate(subscription.expires_at)}
+                                            </p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-3 space-y-3">
+                                        <p className="text-sm text-gray-400">{t.noSub}</p>
+                                        <button
+                                            onClick={() => router.get("/subscriptions")}
+                                            className="w-full py-3 rounded-2xl bg-[#800000] text-white text-sm font-semibold active:opacity-80"
+                                        >
+                                            {t.upgradePlan}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Account details */}
