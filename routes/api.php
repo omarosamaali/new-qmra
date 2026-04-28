@@ -14,7 +14,6 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-// ── Admin contact messages (no CSRF — external dashboard access) ──────────────
 use App\Http\Controllers\ContactController;
 
 Route::prefix('admin/messages')->group(function () {
