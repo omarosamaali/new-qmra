@@ -19,24 +19,43 @@ class ProfileController extends Controller
 
         // Try to fetch fresh profile from API
         $apiUser = null;
+        $package = null;
         if ($token) {
             try {
                 $res = Http::timeout(8)->withToken($token)->get(self::API . '/profile');
                 if ($res->successful()) {
                     $body    = $res->json();
-                    $apiUser = $body['data'] ?? $body;
-                    // Refresh subscription if present in profile response
-                    if (isset($apiUser['subscription'])) {
-                        $sub = $apiUser['subscription'];
+                    $data    = $body['data'] ?? $body;
+                    $apiUser = $data['user'] ?? $data;
+                    $sub     = $data['subscription'] ?? null;
+                    $pkg     = $data['package']      ?? null;
+
+                    if ($sub) {
                         $subscription = [
                             'id'           => $sub['id']           ?? null,
                             'package_id'   => $sub['package_id']   ?? null,
-                            'cars_count'   => $sub['cars_count']   ?? ($sub['package']['cars_count']   ?? 1),
-                            'addons_count' => $sub['addons_count'] ?? ($sub['package']['addons_count'] ?? 0),
-                            'title'        => $sub['package']['title'] ?? null,
+                            'status'       => $sub['status']       ?? 'active',
+                            'period'       => $sub['period']       ?? null,
+                            'amount'       => $sub['amount']       ?? null,
+                            'currency'     => $sub['currency']     ?? 'AED',
+                            'cars_count'   => $pkg['cars_count']   ?? ($sub['cars_count']   ?? 1),
+                            'addons_count' => $pkg['addons_count'] ?? ($sub['addons_count'] ?? 0),
+                            'title'        => $pkg['title']        ?? null,
                             'expires_at'   => $sub['expires_at']   ?? null,
                         ];
                         $request->session()->put('subscription', $subscription);
+                    }
+
+                    if ($pkg) {
+                        $package = [
+                            'title'         => $pkg['title']         ?? null,
+                            'icon'          => $pkg['icon']          ?? null,
+                            'monthly_price' => $pkg['monthly_price'] ?? null,
+                            'yearly_price'  => $pkg['yearly_price']  ?? null,
+                            'cars_count'    => $pkg['cars_count']    ?? 1,
+                            'addons_count'  => $pkg['addons_count']  ?? 0,
+                            'features'      => $pkg['features']      ?? [],
+                        ];
                     }
                 }
             } catch (\Exception $e) {
@@ -53,7 +72,7 @@ class ProfileController extends Controller
             'phone' => $apiUser['phone'] ?? $sessionUser['phone'] ?? $localUser?->phone,
         ];
 
-        return Inertia::render('Phone/Profile', compact('user', 'subscription'));
+        return Inertia::render('Phone/Profile', compact('user', 'subscription', 'package'));
     }
 
     public function update(Request $request)

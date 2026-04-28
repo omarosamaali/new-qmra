@@ -79,7 +79,11 @@ const formatDate = (iso) => {
     return new Date(iso).toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
 };
 
-export default function Profile({ user, subscription }) {
+const periodLabel = (period, isAr) =>
+    period === "monthly" ? (isAr ? "شهري" : "Monthly") :
+    period === "yearly"  ? (isAr ? "سنوي"  : "Yearly")  : period;
+
+export default function Profile({ user, subscription, package: pkg }) {
     const [lang, setLang] = useState("ar");
     const [isEditing, setIsEditing]   = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -157,26 +161,64 @@ export default function Profile({ user, subscription }) {
                                 <p className="font-bold text-gray-900 mb-4">{t.subscription}</p>
                                 {subscription ? (
                                     <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-semibold text-gray-800">
-                                                {subscription.title || "—"}
-                                            </span>
-                                            <span className="text-xs font-bold text-white bg-green-500 px-2.5 py-1 rounded-full">
+                                        {/* Title + badge */}
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="flex items-center gap-2.5">
+                                                {pkg?.icon && (
+                                                    <img src={pkg.icon} alt="" className="w-9 h-9 rounded-xl object-contain bg-gray-50 p-1" />
+                                                )}
+                                                <span className="text-sm font-bold text-gray-800">
+                                                    {pkg?.title || subscription.title || "—"}
+                                                </span>
+                                            </div>
+                                            <span className="text-xs font-bold text-white bg-green-500 px-2.5 py-1 rounded-full shrink-0">
                                                 {t.subActive}
                                             </span>
                                         </div>
+
+                                        {/* Period + price */}
+                                        {(subscription.period || subscription.amount) && (
+                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                {subscription.period && (
+                                                    <span className="bg-gray-100 rounded-lg px-2.5 py-1 font-medium">
+                                                        {periodLabel(subscription.period, isAr)}
+                                                    </span>
+                                                )}
+                                                {subscription.amount && (
+                                                    <span className="font-semibold text-gray-700">
+                                                        {parseFloat(subscription.amount).toFixed(0)} {subscription.currency || "AED"}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Stats */}
                                         <div className="flex gap-3">
                                             <div className="flex-1 bg-gray-50 rounded-2xl p-3 text-center">
-                                                <p className="text-lg font-bold text-[#800000]">{subscription.cars_count ?? 1}</p>
+                                                <p className="text-lg font-bold text-[#800000]">{pkg?.cars_count ?? subscription.cars_count ?? 1}</p>
                                                 <p className="text-xs text-gray-400">{t.cars}</p>
                                             </div>
                                             <div className="flex-1 bg-gray-50 rounded-2xl p-3 text-center">
-                                                <p className="text-lg font-bold text-[#800000]">{subscription.addons_count ?? 0}</p>
+                                                <p className="text-lg font-bold text-[#800000]">{pkg?.addons_count ?? subscription.addons_count ?? 0}</p>
                                                 <p className="text-xs text-gray-400">{t.addons}</p>
                                             </div>
                                         </div>
+
+                                        {/* Features */}
+                                        {pkg?.features?.length > 0 && (
+                                            <ul className="space-y-1.5 pt-1">
+                                                {pkg.features.map((f, i) => (
+                                                    <li key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                                                        <span className="w-4 h-4 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 text-[10px]">✓</span>
+                                                        {f}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+
+                                        {/* Expiry */}
                                         {subscription.expires_at && (
-                                            <p className="text-xs text-gray-400 text-center">
+                                            <p className="text-xs text-gray-400 text-center pt-1">
                                                 {t.subExpires}: {formatDate(subscription.expires_at)}
                                             </p>
                                         )}
