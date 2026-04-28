@@ -14,7 +14,8 @@
       "Bash(\"C:/xampp/mysql/bin/mysql.exe\" -u root qumra -e \"SHOW TABLES; SELECT COUNT\\(*\\) as users FROM users; SELECT COUNT\\(*\\) as vehicles FROM vehicles; SELECT COUNT\\(*\\) as services FROM services; SELECT COUNT\\(*\\) as reminders FROM reminders; SELECT COUNT\\(*\\) as records FROM records; SELECT COUNT\\(*\\) as warranties FROM warranties;\")",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(composer remove *)"
     ]
   }
 }
