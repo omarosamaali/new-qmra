@@ -127,16 +127,16 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
     const [model, setModel]       = useState("");
     const [color, setColor]       = useState("#1A1A1A");
     const [submitting, setSubmitting] = useState(false);
-    // Step 1 values saved before that step unmounts
-    const [savedYear, setSavedYear]   = useState("");
-    const [savedPlate, setSavedPlate] = useState("");
 
-    const yearRef      = useRef(null);
-    const plateRef     = useRef(null);
-    const kmRef        = useRef(null);
-    const regExpiryRef = useRef(null);
-    const insExpiryRef = useRef(null);
-    const notesRef     = useRef(null);
+    const yearRef       = useRef(null);
+    const plateRef      = useRef(null);
+    const kmRef         = useRef(null);
+    const regExpiryRef  = useRef(null);
+    const insExpiryRef  = useRef(null);
+    const notesRef      = useRef(null);
+    // Persist step-1 values across step change (refs never go stale)
+    const savedYearRef  = useRef("");
+    const savedPlateRef = useRef("");
 
     const canNext = () => {
         if (step === 0) return !!(brand && model);
@@ -144,9 +144,8 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
     };
 
     const goNext = () => {
-        // Capture step-1 ref values before the inputs are unmounted
-        setSavedYear(yearRef.current?.value || "");
-        setSavedPlate(plateRef.current?.value?.trim() || "");
+        savedYearRef.current  = yearRef.current?.value        || "";
+        savedPlateRef.current = plateRef.current?.value?.trim() || "";
         setStep(s => s + 1);
     };
 
@@ -154,8 +153,8 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
 
     const handleSubmit = () => {
         if (submitting || atLimit) return;
-        const year               = savedYear;
-        const plateNumber        = savedPlate;
+        const year               = savedYearRef.current;
+        const plateNumber        = savedPlateRef.current;
         const currentKm          = kmRef.current?.value           || "";
         const registrationExpiry = regExpiryRef.current?.value    || null;
         const insuranceExpiry    = insExpiryRef.current?.value    || null;
