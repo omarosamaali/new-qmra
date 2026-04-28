@@ -106,7 +106,11 @@ export default function Subscriptions({ packages = [], subscription = null }) {
             }
             router.get("/");
         } catch (e) {
-            setError(e.response?.data?.error ?? "حدث خطأ، حاول مرة أخرى");
+            const msg = e.response?.data?.message
+                ?? e.response?.data?.error
+                ?? e.message
+                ?? "حدث خطأ، حاول مرة أخرى";
+            setError(msg);
         } finally {
             setLoadingId(null);
         }
