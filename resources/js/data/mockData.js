@@ -10,6 +10,7 @@ export const vehicles = [
         color: "#800000",
         year: 2021,
         image: null,
+        unit: "km",
     },
     {
         id: 2,
@@ -22,6 +23,7 @@ export const vehicles = [
         color: "#800000",
         year: 2020,
         image: null,
+        unit: "km",
     },
     {
         id: 3,
@@ -34,6 +36,7 @@ export const vehicles = [
         color: "#800000",
         year: 2023,
         image: null,
+        unit: "km",
     },
 ];
 

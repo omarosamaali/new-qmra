@@ -49,6 +49,13 @@ const RECURRENCE_OPTIONS = [
     { value: "20000km", label: "كل 20,000 كم", km: 20000, days: null },
 ];
 
+const recurrenceLabel = (o, unit = "km") => {
+    if (!o || !o.km) return o?.label ?? "";
+    return unit === "mi"
+        ? `كل ${o.km.toLocaleString("en")} ميل`
+        : o.label;
+};
+
 const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }) => {
     const [serviceId,  setServiceId]  = useState("");
     const [recurrence, setRecurrence] = useState("");
@@ -192,7 +199,7 @@ const DeleteSheet = ({ vsId, serviceName, onClose }) => {
 
 // ─── Service Row ─────────────────────────────────────────────────────────────
 
-const ServiceRow = ({ vs, allServices, onDelete }) => {
+const ServiceRow = ({ vs, allServices, onDelete, unit = "km" }) => {
     const service = allServices.find((s) => s.id === vs.serviceId);
 
     return (
@@ -209,7 +216,7 @@ const ServiceRow = ({ vs, allServices, onDelete }) => {
                             (o.days && o.days === vs.intervalDays) ||
                             (!vs.intervalKm && !vs.intervalDays && o.value === "once")
                         );
-                        return rec ? <span className="text-xs text-gray-400">{rec.label}</span> : null;
+                        return rec ? <span className="text-xs text-gray-400">{recurrenceLabel(rec, unit)}</span> : null;
                     })()}
                     {vs.cost && <span className="text-xs text-gray-400">&bull; {vs.cost} ر.س</span>}
                     {vs.notes && <span className="text-xs text-gray-300">&bull; {vs.notes}</span>}
@@ -263,6 +270,7 @@ const VehicleSection = ({ vehicle, vehicleServicesList, allServices, onAddServic
                             vs={vs}
                             allServices={allServices}
                             onDelete={onDelete}
+                            unit={vehicle.unit || "km"}
                         />
                     ))
                 )}

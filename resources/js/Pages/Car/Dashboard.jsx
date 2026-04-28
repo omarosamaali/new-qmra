@@ -471,7 +471,7 @@ export default function CarDashboard({ userName }) {
     // ── Colours ───────────────────────────────────────────────────────────────
     const bg      = isDark ? "linear-gradient(to top,#0d0d0d 10%,#1a0a0a 55%,#2a1010 100%)" : "linear-gradient(to top,#f5e8e8 0%,#ede0e0 100%)";
     const cardBg  = isDark ? "linear-gradient(135deg,#2a1010,#1a0808)" : "linear-gradient(135deg,#ffffff,#fdf0f0)";
-    const centerBg = isDark ? "#000" : "#e7e7e7";
+    const centerBg = "#800000";
     const tp      = isDark ? "#ffffff" : "#1a0000";
     const ts      = isDark ? "#c9a0a0" : "#5a2020";
     const tm      = isDark ? "rgba(255,180,180,0.4)" : "rgba(100,0,0,0.35)";
@@ -559,7 +559,7 @@ export default function CarDashboard({ userName }) {
                     display: "flex",
                     flexDirection: "column",
                     background: centerBg,
-                    border: `1px solid ${isDark ? "rgba(0,0,0)" : "rgba(128,0,0,0.2)"}`,
+                    border: "1px solid rgba(255,255,255,0.15)",
                     overflow: "hidden",
                 }}>
                     {/* Back button inside center panel */}
@@ -604,7 +604,7 @@ export default function CarDashboard({ userName }) {
                     {/* ── AI Default View ── */}
                     {centerView === null && toasts.length === 0 && (
                         <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
-                            <img src={!isDark ? "/images/dark-logo.png" : "/images/main-logo.png"} alt="قمرة" style={{ height: "52px", objectFit: "contain", marginTop: "10px" }} />
+                            <img src="/images/main-logo.png" alt="قمرة" style={{ height: "52px", objectFit: "contain", marginTop: "10px" }} />
                             <img
                                 src={`/images/${aiAssistant === "sakr" ? "hamad" : "Sheikha"}-${aiState === "speaking" ? "talk" : "stop"}-${isDark ? "dark" : "white"}.gif`}
                                 style={{ width: "90%", flex: 1, objectFit: "contain", transition: "opacity .3s", filter: aiState === "speaking" ? "drop-shadow(0 20px 40px rgba(100,180,255,0.4))" : "none" }}

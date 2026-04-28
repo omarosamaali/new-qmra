@@ -41,7 +41,7 @@ const RecordCard = ({ record, vehicles, services }) => {
                     <span>&bull;</span>
                     <span>{vehicle?.plateNumber}</span>
                 </div>
-                <span>{Number(record.km).toLocaleString("en")} كم</span>
+                <span>{Number(record.km).toLocaleString("en")} {vehicle?.unit === "mi" ? "mi" : "كم"}</span>
             </div>
 
             <div className="text-xs text-gray-400 mt-1">

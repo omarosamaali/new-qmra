@@ -182,6 +182,7 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
         km: String(vehicle.km),
         type: vehicle.type,
         color: vehicle.color,
+        unit: vehicle.unit || "km",
         image: vehicle.image || null,
     });
     const [visible, setVisible] = useState(false);
@@ -262,7 +263,9 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
                             <input type="text" value={form.plateNumber} onChange={e => setForm(f => ({ ...f, plateNumber: e.target.value }))} className={inputClass} dir="ltr" />
                         </div>
                         <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("الكيلومتر", "Mileage")}</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                {form.unit === "mi" ? t("المسافة (ميل)", "Mileage (mi)") : t("الكيلومتر", "Mileage (km)")}
+                            </label>
                             <input type="number" value={form.km} onChange={e => setForm(f => ({ ...f, km: e.target.value }))} className={inputClass} dir="ltr" />
                         </div>
                     </div>
@@ -564,7 +567,7 @@ const VehicleViewSheet = ({ vehicle, addonsLimit, linkedCount, onClose, onLinked
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const formatKm = (km) => km.toLocaleString("en") + " كم";
+const formatKm = (km, unit = "km") => km.toLocaleString("en") + (unit === "mi" ? " mi" : " كم");
 
 const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -656,7 +659,7 @@ const  VehicleCard = ({ vehicle, reminders = [], isSelected, onClick, onEdit, on
                 </div>
 
                 <div className="flex justify-between items-center bg-gray-50 rounded-xl px-3 py-2 mb-3">
-                    <span className="text-sm font-bold text-[#800000]">{formatKm(vehicle.km)}</span>
+                    <span className="text-sm font-bold text-[#800000]">{formatKm(vehicle.km, vehicle.unit)}</span>
                     <span className="text-sm font-semibold text-gray-600">{vehicle.plateNumber}</span>
                 </div>
             </div>

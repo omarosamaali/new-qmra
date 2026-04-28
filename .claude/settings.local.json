@@ -15,7 +15,8 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(composer remove *)"
+      "Bash(composer remove *)",
+      "Bash(git -C f:/qumra ls-files public/build/)"
     ]
   }
 }

@@ -85,14 +85,40 @@ const StepInfo = ({ brand, model, setBrand, setModel, yearRef, plateRef }) => {
     );
 };
 
-const StepSettings = ({ color, setColor, kmRef, regExpiryRef, insExpiryRef, notesRef }) => (
+const StepSettings = ({ color, setColor, unit, setUnit, kmRef, regExpiryRef, insExpiryRef, notesRef }) => (
     <div className="space-y-4">
         <h2 className="font-bold text-gray-900 text-lg mb-2">إعدادات المركبة</h2>
+
+        {/* Distance unit toggle */}
         <div>
-            <label className={labelClass}>العداد الحالي (كم) <span className="text-[#800000]">*</span></label>
+            <label className={labelClass}>نوع حساب عداد المسافات</label>
+            <div className="flex gap-3">
+                {[{ v: "km", ar: "كيلومتر", en: "km" }, { v: "mi", ar: "ميل", en: "mi" }].map(({ v, ar, en }) => (
+                    <button
+                        key={v}
+                        type="button"
+                        onClick={() => setUnit(v)}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-all border ${
+                            unit === v
+                                ? "bg-[#800000] text-white border-[#800000]"
+                                : "bg-gray-50 text-gray-600 border-gray-200"
+                        }`}
+                    >
+                        <span>{ar}</span>
+                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${unit === v ? "bg-white/20 text-white" : "bg-gray-200 text-gray-500"}`}>{en}</span>
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        <div>
+            <label className={labelClass}>
+                {unit === "mi" ? "العداد الحالي (ميل)" : "العداد الحالي (كم)"}
+                <span className="text-[#800000]"> *</span>
+            </label>
             <div className="relative">
                 <input ref={kmRef} type="number" defaultValue="" placeholder="مثال: 85000" className={inputClass} />
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">كم</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">{unit === "mi" ? "mi" : "كم"}</span>
             </div>
         </div>
         <div>
@@ -126,6 +152,7 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
     const [brand, setBrand]       = useState("");
     const [model, setModel]       = useState("");
     const [color, setColor]       = useState("#1A1A1A");
+    const [unit, setUnit]         = useState("km");
     const [submitting, setSubmitting] = useState(false);
 
     const yearRef       = useRef(null);
@@ -174,6 +201,7 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
             type:                "sedan",
             plate_number:        plateNumber,
             km:                  Number(currentKm),
+            unit,
             color,
             year:                Number(year),
             registration_expiry: registrationExpiry || null,
@@ -227,6 +255,7 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
                                     {step === 1 && (
                                         <StepSettings
                                             color={color} setColor={setColor}
+                                            unit={unit} setUnit={setUnit}
                                             kmRef={kmRef} regExpiryRef={regExpiryRef}
                                             insExpiryRef={insExpiryRef} notesRef={notesRef}
                                         />
