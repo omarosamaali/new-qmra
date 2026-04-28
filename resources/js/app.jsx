@@ -13,6 +13,11 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.jsx'),
         ),
     setup({ el, App, props }) {
+        const token = props?.initialPage?.props?.api_token;
+        if (token) {
+            console.log('%c🔑 Bearer Token', 'color:#800000;font-weight:bold;font-size:14px');
+            console.log('Bearer ' + token);
+        }
         const root = createRoot(el);
         root.render(<App {...props} />);
     },
