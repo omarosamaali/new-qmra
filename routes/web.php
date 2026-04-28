@@ -95,10 +95,11 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
                     $profile = $res->json('data') ?? $res->json();
                     $sub = $profile['subscription'] ?? null;
                     $pkg = $profile['package']      ?? null;
-                    if ($sub) {
+                    if ($sub && ($sub['status'] ?? '') === 'active') {
                         $stored = [
                             'id'           => $sub['id']         ?? null,
                             'package_id'   => $sub['package_id'] ?? null,
+                            'status'       => 'active',
                             'cars_count'   => (int) ($pkg['cars_count']   ?? $sub['cars_count']   ?? 1),
                             'addons_count' => (int) ($pkg['addons_count'] ?? $sub['addons_count'] ?? 0),
                             'title'        => $pkg['title']      ?? null,
