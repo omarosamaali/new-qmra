@@ -53,7 +53,9 @@ class SubscriptionsController extends Controller
 
         $subscription = $request->session()->get('subscription');
 
-        return Inertia::render('Phone/Subscriptions', compact('packages', 'subscription'));
+        $sessionId = $request->session()->getId();
+
+        return Inertia::render('Phone/Subscriptions', compact('packages', 'subscription', 'sessionId'));
     }
 
     public function subscribe(Request $request, int $packageId)

@@ -82,7 +82,7 @@ const PlanCard = ({ pkg, isCurrentPlan, billing, onSubscribe, loading }) => {
     );
 };
 
-export default function Subscriptions({ packages = [], subscription = null }) {
+export default function Subscriptions({ packages = [], subscription = null, sessionId = null }) {
     const [billing, setBilling]   = useState("monthly");
     const [loadingId, setLoadingId] = useState(null);
     const [error, setError]       = useState("");
@@ -131,6 +131,12 @@ export default function Subscriptions({ packages = [], subscription = null }) {
                         )}
                         <h1 className="mx-auto font-bold text-gray-900 text-lg px-4">الاشتراكات</h1>
                     </div>
+
+                    {sessionId && (
+                        <div className="bg-gray-800 px-4 py-2">
+                            <p className="text-xs text-green-400 font-mono break-all">session: {sessionId}</p>
+                        </div>
+                    )}
 
                     {!subscription && (
                         <div className="bg-amber-50 border-b border-amber-100 px-4 py-3">
