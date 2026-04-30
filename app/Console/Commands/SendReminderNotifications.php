@@ -53,7 +53,7 @@ class SendReminderNotifications extends Command
             'target_channel'           => 'push',
             'headings'                 => ['en' => $title, 'ar' => $title],
             'contents'                 => ['en' => $message, 'ar' => $message],
-            'url'                      => 'https://app.qmra.ae/reminders',
+            'url'                      => env('APP_URL') . '/reminders',
         ]);
     }
 }

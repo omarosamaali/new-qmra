@@ -82,7 +82,7 @@ const PlanCard = ({ pkg, isCurrentPlan, billing, onSubscribe, loading }) => {
     );
 };
 
-export default function Subscriptions({ packages = [], subscription = null, sessionId = null }) {
+export default function Subscriptions({ packages = [], subscription = null, sessionId = null, paymentStatus = null }) {
     const [billing, setBilling]   = useState("monthly");
     const [loadingId, setLoadingId] = useState(null);
     const [error, setError]       = useState("");
@@ -94,15 +94,19 @@ export default function Subscriptions({ packages = [], subscription = null, sess
         setError("");
         try {
             const pkg = packages.find(p => p.id === packageId);
-            const res = await axios.post(`/subscriptions/${packageId}`, {
-                period:       billing,
-                cars_count:   pkg?.cars_count   ?? 1,
-                addons_count: pkg?.addons_count ?? 0,
-                title:        pkg?.title        ?? "",
+            const payload = new URLSearchParams({
+                period: billing,
+                cars_count: String(pkg?.cars_count ?? 1),
+                addons_count: String(pkg?.addons_count ?? 0),
+                title: pkg?.title ?? "",
+            });
+            const res = await axios.post(`/subscriptions/${packageId}`, payload, {
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
             });
             const paymentUrl = res.data?.payment_url;
             if (paymentUrl) {
-                window.open(paymentUrl, "_blank");
+                window.location.href = paymentUrl;
+                return;
             }
             router.get("/");
         } catch (e) {
@@ -132,11 +136,11 @@ export default function Subscriptions({ packages = [], subscription = null, sess
                         <h1 className="mx-auto font-bold text-gray-900 text-lg px-4">الاشتراكات</h1>
                     </div>
 
-                    {sessionId && (
+                    {/* {sessionId && (
                         <div className="bg-gray-800 px-4 py-2">
                             <p className="text-xs text-green-400 font-mono break-all">session: {sessionId}</p>
                         </div>
-                    )}
+                    )} */}
 
                     {!subscription && (
                         <div className="bg-amber-50 border-b border-amber-100 px-4 py-3">
@@ -152,6 +156,27 @@ export default function Subscriptions({ packages = [], subscription = null, sess
                             {error && (
                                 <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
                                     <p className="text-sm text-red-600 text-center">{error}</p>
+                                </div>
+                            )}
+                            {paymentStatus === "success" && (
+                                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-3">
+                                    <p className="text-sm text-emerald-700 text-center">
+                                        تم استلام نتيجة الدفع بنجاح وجاري تفعيل الاشتراك.
+                                    </p>
+                                </div>
+                            )}
+                            {paymentStatus === "cancelled" && (
+                                <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3">
+                                    <p className="text-sm text-amber-800 text-center">
+                                        تم إلغاء عملية الدفع. يمكنك المحاولة مرة أخرى في أي وقت.
+                                    </p>
+                                </div>
+                            )}
+                            {paymentStatus === "failed" && (
+                                <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
+                                    <p className="text-sm text-red-600 text-center">
+                                        فشلت عملية الدفع. يرجى التحقق من وسيلة الدفع والمحاولة مجددًا.
+                                    </p>
                                 </div>
                             )}
 

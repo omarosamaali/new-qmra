@@ -9,7 +9,12 @@ use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
-    private const API = 'https://qmra.ae/api';
+    private $API;
+
+    public function __construct()
+    {
+        $this->API = env('APP_BACKEND_URL') . '/api';
+    }
 
     public function index(Request $request)
     {
@@ -22,7 +27,7 @@ class ProfileController extends Controller
         $package = null;
         if ($token) {
             try {
-                $res = Http::timeout(8)->withToken($token)->get(self::API . '/profile');
+                $res = Http::timeout(8)->withToken($token)->get($this->API . '/profile');
                 if ($res->successful()) {
                     $body    = $res->json();
                     $data    = $body['data'] ?? $body;
@@ -90,7 +95,7 @@ class ProfileController extends Controller
         $token = $request->session()->get('api_token');
         if ($token) {
             try {
-                Http::timeout(10)->withToken($token)->put(self::API . '/profile', $request->only(['name', 'phone']));
+                Http::timeout(10)->withToken($token)->put($this->API . '/profile', $request->only(['name', 'phone']));
             } catch (\Exception $e) {
                 // API update failed silently
             }

@@ -7,12 +7,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class AuthController extends Controller
 {
-    private const API = 'https://qmra.ae/api';
+    private $API;
+
+    public function __construct()
+    {
+        $this->API = env('APP_BACKEND_URL') . '/api';
+    }
 
     // ── Register ──────────────────────────────────────────────────────────────
 
@@ -38,7 +44,7 @@ class AuthController extends Controller
             'password.confirmed' => 'كلمتا المرور غير متطابقتين',
         ]);
 
-        $response = Http::timeout(15)->post(self::API . '/auth/register', [
+        $response = Http::timeout(15)->post($this->API . '/auth/register', [
             'name'                  => $request->input('name'),
             'email'                 => $request->input('email'),
             'phone'                 => $request->input('phone'),
@@ -56,7 +62,7 @@ class AuthController extends Controller
                 $localUser = $this->findOrCreateLocalUser($apiUser);
                 Auth::login($localUser, true);
             } catch (\Exception $e) {
-                \Log::error('Register findOrCreateLocalUser failed: ' . $e->getMessage());
+                Log::error('Register findOrCreateLocalUser failed: ' . $e->getMessage());
             }
 
             $request->session()->regenerate();
@@ -67,7 +73,7 @@ class AuthController extends Controller
             // Fetch subscription using the fresh token
             if ($token) {
                 try {
-                    $profileRes = Http::timeout(8)->withToken($token)->get(self::API . '/profile');
+                    $profileRes = Http::timeout(8)->withToken($token)->get($this->API . '/profile');
                     if ($profileRes->successful()) {
                         $profileData = $profileRes->json();
                         $profile     = $profileData['data'] ?? $profileData;
@@ -121,16 +127,16 @@ class AuthController extends Controller
         ]);
 
         try {
-            $response = Http::timeout(15)->post(self::API . '/auth/login', [
+            $response = Http::timeout(15)->post($this->API . '/auth/login', [
                 'email'    => $request->input('email'),
                 'password' => $request->input('password'),
             ]);
         } catch (\Exception $e) {
-            \Log::error('Login API failed: ' . $e->getMessage());
+            Log::error('Login API failed: ' . $e->getMessage());
             return back()->withErrors(['email' => 'تعذّر الاتصال بالخادم، حاول مرة أخرى'])->onlyInput('email');
         }
 
-        \Log::info('Login API status: ' . $response->status() . ' body: ' . substr($response->body(), 0, 300));
+        Log::info('Login API status: ' . $response->status() . ' body: ' . substr($response->body(), 0, 300));
 
         if ($response->successful()) {
             $data    = $response->json();
@@ -142,7 +148,7 @@ class AuthController extends Controller
                 $localUser = $this->findOrCreateLocalUser($apiUser);
                 Auth::login($localUser, true);
             } catch (\Exception $e) {
-                \Log::error('findOrCreateLocalUser failed: ' . $e->getMessage());
+                Log::error('findOrCreateLocalUser failed: ' . $e->getMessage());
             }
 
             $request->session()->regenerate();
@@ -153,7 +159,7 @@ class AuthController extends Controller
             // Fetch subscription using the fresh token
             if ($token) {
                 try {
-                    $profileRes = Http::timeout(8)->withToken($token)->get(self::API . '/profile');
+                    $profileRes = Http::timeout(8)->withToken($token)->get($this->API . '/profile');
                     if ($profileRes->successful()) {
                         $profileData = $profileRes->json();
                         $profile     = $profileData['data'] ?? $profileData;
@@ -195,7 +201,7 @@ class AuthController extends Controller
         $request->validate(['email' => 'required|email']);
 
         try {
-            $response = Http::timeout(15)->post(self::API . '/auth/send-reset-code', [
+            $response = Http::timeout(15)->post($this->API . '/auth/send-reset-code', [
                 'email' => $request->input('email'),
             ]);
         } catch (\Exception $e) {
@@ -222,7 +228,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            $response = Http::timeout(15)->post(self::API . '/auth/update-password', [
+            $response = Http::timeout(15)->post($this->API . '/auth/update-password', [
                 'email'                 => $request->input('email'),
                 'code'                  => $request->input('code'),
                 'password'              => $request->input('password'),
@@ -248,7 +254,7 @@ class AuthController extends Controller
     {
         $token = $request->session()->get('api_token');
         if ($token) {
-            Http::timeout(5)->withToken($token)->post(self::API . '/auth/logout');
+            Http::timeout(5)->withToken($token)->post($this->API . '/auth/logout');
         }
 
         Auth::logout();

@@ -9,7 +9,11 @@ use Inertia\Inertia;
 
 class SubscriptionsController extends Controller
 {
-    private const API = 'https://qmra.ae/api';
+    private $API;
+    public function __construct()
+    {
+        $this->API = env('APP_BACKEND_URL') . '/api';
+    }
 
     public function index(Request $request)
     {
@@ -18,44 +22,45 @@ class SubscriptionsController extends Controller
         // After Ziina payment the external API marks the subscription active but never
         // calls our callback, so the session has no subscription yet. Re-check the API
         // on every visit to /subscriptions and redirect home if we find an active one.
-        if ($token) {
-            try {
-                $profileRes = Http::timeout(8)->withToken($token)->get(self::API . '/profile');
-                if ($profileRes->successful()) {
-                    $profile = $profileRes->json('data') ?? $profileRes->json();
-                    $sub     = $profile['subscription'] ?? null;
-                    if ($sub && ($sub['status'] ?? '') === 'active') {
-                        $expiresAt = $sub['expires_at'] ?? null;
-                        if (!$expiresAt || !Carbon::parse($expiresAt)->isPast()) {
-                            $request->session()->put('subscription', [
-                                'id'           => $sub['id']           ?? null,
-                                'package_id'   => $sub['package_id']   ?? null,
-                                'status'       => 'active',
-                                'cars_count'   => $sub['cars_count']   ?? ($sub['package']['cars_count']   ?? 1),
-                                'addons_count' => $sub['addons_count'] ?? ($sub['package']['addons_count'] ?? 0),
-                                'title'        => $sub['package']['title'] ?? null,
-                                'expires_at'   => $expiresAt,
-                            ]);
-                            return redirect('/');
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-                // Profile fetch failed — show subscription page normally
-            }
-        }
+        // if ($token) {
+        //     try {
+        //         $profileRes = Http::timeout(8)->withToken($token)->get(self::API . '/profile');
+        //         if ($profileRes->successful()) {
+        //             $profile = $profileRes->json('data') ?? $profileRes->json();
+        //             $sub     = $profile['subscription'] ?? null;
+        //             if ($sub && ($sub['status'] ?? '') === 'active') {
+        //                 $expiresAt = $sub['expires_at'] ?? null;
+        //                 if (!$expiresAt || !Carbon::parse($expiresAt)->isPast()) {
+        //                     $request->session()->put('subscription', [
+        //                         'id'           => $sub['id']           ?? null,
+        //                         'package_id'   => $sub['package_id']   ?? null,
+        //                         'status'       => 'active',
+        //                         'cars_count'   => $sub['cars_count']   ?? ($sub['package']['cars_count']   ?? 1),
+        //                         'addons_count' => $sub['addons_count'] ?? ($sub['package']['addons_count'] ?? 0),
+        //                         'title'        => $sub['package']['title'] ?? null,
+        //                         'expires_at'   => $expiresAt,
+        //                     ]);
+        //                     return redirect('/');
+        //                 }
+        //             }
+        //         }
+        //     } catch (\Exception $e) {
+        //         // Profile fetch failed — show subscription page normally
+        //     }
+        // }
 
         $packages = [];
-        $res = Http::timeout(10)->withToken($token)->get(self::API . '/packages');
+        $res = Http::timeout(10)->withToken($token)->get($this->API . '/packages');
         if ($res->successful()) {
             $packages = $res->json('data') ?? [];
         }
 
         $subscription = $request->session()->get('subscription');
+        $paymentStatus = $request->query('payment_status');
 
         $sessionId = $request->session()->getId();
 
-        return Inertia::render('Phone/Subscriptions', compact('packages', 'subscription', 'sessionId'));
+        return Inertia::render('Phone/Subscriptions', compact('packages', 'subscription', 'sessionId', 'paymentStatus'));
     }
 
     public function subscribe(Request $request, int $packageId)
@@ -65,7 +70,7 @@ class SubscriptionsController extends Controller
         $token = $request->session()->get('api_token');
 
         $res = Http::timeout(15)->withToken($token)->post(
-            self::API . '/auth/subscribe/' . $packageId,
+            $this->API . '/auth/subscribe/' . $packageId,
             ['period' => $request->input('period')]
         );
 
@@ -103,11 +108,13 @@ class SubscriptionsController extends Controller
 
     public function callback(Request $request)
     {
+        $status = strtolower((string) $request->query('payment_status', 'pending'));
         // After payment, refresh subscription from API
         $token = $request->session()->get('api_token');
 
+
         if ($token) {
-            $res = Http::timeout(10)->withToken($token)->get(self::API . '/profile/get');
+            $res = Http::timeout(10)->withToken($token)->get($this->API . '/profile');
             if ($res->successful()) {
                 $profile = $res->json('data') ?? $res->json();
                 $sub = $profile['subscription'] ?? null;
@@ -128,6 +135,6 @@ class SubscriptionsController extends Controller
             }
         }
 
-        return redirect('/');
+        return redirect('/subscriptions?payment_status=' . urlencode($status));
     }
 }

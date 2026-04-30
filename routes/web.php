@@ -43,7 +43,7 @@ Route::post('/contact', [ContactController::class, 'store']);
 Route::get('/about', function () {
     $settings = [];
     try {
-        $res = Http::timeout(6)->get('https://qmra.ae/api/site-settings');
+        $res = Http::timeout(6)->get(env('APP_BACKEND_URL') . '/api/site-settings');
         if ($res->successful()) $settings = $res->json('data') ?? $res->json();
     } catch (\Exception $e) {}
     return Inertia::render('Phone/About', [
@@ -53,7 +53,7 @@ Route::get('/about', function () {
 Route::get('/terms', function () {
     $settings = [];
     try {
-        $res = Http::timeout(6)->get('https://qmra.ae/api/site-settings');
+        $res = Http::timeout(6)->get(env('APP_BACKEND_URL') . '/api/site-settings');
         if ($res->successful()) $settings = $res->json('data') ?? $res->json();
     } catch (\Exception $e) {}
     return Inertia::render('Phone/Terms', [
@@ -90,7 +90,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
         $token = $req->session()->get('api_token');
         if ($token) {
             try {
-                $res = Http::timeout(6)->withToken($token)->get('https://qmra.ae/api/profile');
+                $res = Http::timeout(6)->withToken($token)->get(env('APP_BACKEND_URL') . '/api/profile');
                 if ($res->successful()) {
                     $profile = $res->json('data') ?? $res->json();
                     $sub = $profile['subscription'] ?? null;
