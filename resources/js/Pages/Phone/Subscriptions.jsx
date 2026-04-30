@@ -94,14 +94,17 @@ export default function Subscriptions({ packages = [], subscription = null, sess
         setError("");
         try {
             const pkg = packages.find(p => p.id === packageId);
-            const payload = new URLSearchParams({
-                period: billing,
-                cars_count: String(pkg?.cars_count ?? 1),
-                addons_count: String(pkg?.addons_count ?? 0),
-                title: pkg?.title ?? "",
-            });
-            const res = await axios.post(`/subscriptions/${packageId}`, payload, {
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            const res = await axios.post(`/subscriptions/${packageId}`, {
+                period:       billing || 'monthly',
+                cars_count:   pkg?.cars_count   ?? 1,
+                addons_count: pkg?.addons_count ?? 0,
+                title:        pkg?.title        ?? "",
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                }
             });
             const paymentUrl = res.data?.payment_url;
             if (paymentUrl) {
