@@ -30,7 +30,7 @@ Route::get('/subscriptions/callback', [SubscriptionsController::class, 'callback
 // ── Subscription page (auth but NOT subscription-gated — user must be able to reach it freely)
 Route::middleware('auth')->group(function () {
     Route::get('/subscriptions',          [SubscriptionsController::class, 'index'])->name('subscriptions');
-    Route::post('/subscriptions/{id}',    [SubscriptionsController::class, 'subscribe']);
+    Route::post('/subscriptions/{id}/{period}',    [SubscriptionsController::class, 'subscribe']);
     Route::get('/profile',  [ProfileController::class, 'index'])->name('profile');
     Route::put('/profile',  [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile',[ProfileController::class, 'update']);

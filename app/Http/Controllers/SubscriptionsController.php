@@ -63,38 +63,42 @@ class SubscriptionsController extends Controller
         return Inertia::render('Phone/Subscriptions', compact('packages', 'subscription', 'sessionId', 'paymentStatus'));
     }
 
-    public function subscribe(Request $request, int $packageId)
+    public function subscribe(Request $request, int $packageId, string $period)
     {
-        $request->validate(['period' => 'required|in:monthly,yearly']);
+
+        // return response()->json(['error_data' => $request->all() + ['packageId' => $packageId]], 500);
+
+        // $request->validate(['period' => 'required|in:monthly,yearly']);
 
         $token = $request->session()->get('api_token');
 
         $res = Http::timeout(15)->withToken($token)->post(
             $this->API . '/auth/subscribe/' . $packageId,
-            ['period' => $request->input('period')]
+            ['period' => $period]
         );
 
         if ($res->successful()) {
             $data = $res->json('data') ?? [];
 
             // API may return full subscription data or just a payment URL string
-            if (is_array($data)) {
-                $sub = $data['subscription'] ?? [];
-                $pkg = $data['package']      ?? [];
-                // Only store subscription if it is active
-                if (($sub['status'] ?? '') === 'active') {
-                    $request->session()->put('subscription', [
-                        'id'           => $sub['id']         ?? null,
-                        'package_id'   => $sub['package_id'] ?? $packageId,
-                        'status'       => 'active',
-                        'cars_count'   => (int) ($pkg['cars_count']   ?? $sub['cars_count']   ?? 1),
-                        'addons_count' => (int) ($pkg['addons_count'] ?? $sub['addons_count'] ?? 0),
-                        'title'        => $pkg['title']      ?? null,
-                        'expires_at'   => $sub['expires_at'] ?? null,
-                    ]);
-                }
-                return response()->json(['payment_url' => null]);
-            }
+            // if (is_array($data)) {
+            //     $sub = $data['subscription'] ?? [];
+            //     $pkg = $data['package']      ?? [];
+
+            //     // Only store subscription if it is active
+            //     if (($sub['status'] ?? '') === 'active') {
+            //         $request->session()->put('subscription', [
+            //             'id'           => $sub['id']         ?? null,
+            //             'package_id'   => $sub['package_id'] ?? $packageId,
+            //             'status'       => 'active',
+            //             'cars_count'   => (int) ($pkg['cars_count']   ?? $sub['cars_count']   ?? 1),
+            //             'addons_count' => (int) ($pkg['addons_count'] ?? $sub['addons_count'] ?? 0),
+            //             'title'        => $pkg['title']      ?? null,
+            //             'expires_at'   => $sub['expires_at'] ?? null,
+            //         ]);
+            //     }
+            //     return response()->json(['payment_url' => null]);
+            // }
 
             // data is a payment URL string (Ziina) — do NOT store subscription yet,
             // payment is not confirmed. The callback will store it after confirmation.

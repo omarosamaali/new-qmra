@@ -86,7 +86,7 @@ export default function Subscriptions({ packages = [], subscription = null, sess
     const [billing, setBilling]   = useState("monthly");
     const [loadingId, setLoadingId] = useState(null);
     const [error, setError]       = useState("");
-
+    const [error_data, setErrorData] = useState(null);
     const currentPackageId = subscription?.package_id ?? null;
 
     const handleSubscribe = async (packageId) => {
@@ -94,17 +94,12 @@ export default function Subscriptions({ packages = [], subscription = null, sess
         setError("");
         try {
             const pkg = packages.find(p => p.id === packageId);
-            const res = await axios.post(`/subscriptions/${packageId}`, {
-                period:       billing || 'monthly',
-                cars_count:   pkg?.cars_count   ?? 1,
-                addons_count: pkg?.addons_count ?? 0,
-                title:        pkg?.title        ?? "",
-            }, {
+            const res = await axios.post(`/subscriptions/${packageId}/${billing || 'monthly'}`, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                }
+                },
             });
             const paymentUrl = res.data?.payment_url;
             if (paymentUrl) {
@@ -118,6 +113,7 @@ export default function Subscriptions({ packages = [], subscription = null, sess
                 ?? e.message
                 ?? "حدث خطأ، حاول مرة أخرى";
             setError(msg);
+            setErrorData(e.response?.data?.error_data ?? null);
         } finally {
             setLoadingId(null);
         }
@@ -161,6 +157,13 @@ export default function Subscriptions({ packages = [], subscription = null, sess
                                     <p className="text-sm text-red-600 text-center">{error}</p>
                                 </div>
                             )}
+
+                            {/* print error_data if it exists */}
+                            {error_data && (
+                                <pre className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-3 overflow-x-auto">
+                                    <code className="text-xs text-gray-600">{JSON.stringify(error_data, null, 2)}</code>
+                                </pre>
+                            )}
                             {paymentStatus === "success" && (
                                 <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-3">
                                     <p className="text-sm text-emerald-700 text-center">
@@ -183,19 +186,27 @@ export default function Subscriptions({ packages = [], subscription = null, sess
                                 </div>
                             )}
 
-                            <div className="flex bg-white rounded-2xl p-1 shadow-sm">
+                            <div className="flex bg-white rounded-2xl p-1 shadow-sm" role="radiogroup" aria-label="فترة الاشتراك">
                                 {["monthly", "yearly"].map(b => (
-                                    <button key={b} onClick={() => setBilling(b)}
-                                        className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-150 flex items-center justify-center gap-1.5 ${
+                                    <label key={b}
+                                        className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer ${
                                             billing === b ? "bg-[#800000] text-white shadow-sm" : "text-gray-500"
                                         }`}>
+                                        <input
+                                            type="radio"
+                                            name="billing-period"
+                                            value={b}
+                                            checked={billing === b}
+                                            onChange={() => setBilling(b)}
+                                            className="sr-only"
+                                        />
                                         {b === "monthly" ? "شهري" : "سنوي"}
                                         {b === "yearly" && (
                                             <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${billing === "yearly" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"}`}>
                                                 وفّر 20%
                                             </span>
                                         )}
-                                    </button>
+                                    </label>
                                 ))}
                             </div>
 
