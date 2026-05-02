@@ -10,9 +10,10 @@ use Inertia\Inertia;
 class SubscriptionsController extends Controller
 {
     private $API;
+
     public function __construct()
     {
-        $this->API = env('APP_BACKEND_URL') . '/api';
+        $this->API = env('APP_BACKEND_URL').'/api';
     }
 
     public function index(Request $request)
@@ -50,7 +51,7 @@ class SubscriptionsController extends Controller
         // }
 
         $packages = [];
-        $res = Http::timeout(10)->withToken($token)->get($this->API . '/packages');
+        $res = Http::timeout(10)->withToken($token)->get($this->API.'/packages');
         if ($res->successful()) {
             $packages = $res->json('data') ?? [];
         }
@@ -73,7 +74,7 @@ class SubscriptionsController extends Controller
         $token = $request->session()->get('api_token');
 
         $res = Http::timeout(15)->withToken($token)->post(
-            $this->API . '/auth/subscribe/' . $packageId,
+            $this->API.'/auth/subscribe/'.$packageId,
             ['period' => $period]
         );
 
@@ -110,12 +111,32 @@ class SubscriptionsController extends Controller
         ], $res->status() ?: 500);
     }
 
+    /**
+     * Public HTTPS endpoint for Ziina / backend payment success redirects.
+     * Forwards query string to the NativePHP custom scheme so the installed app opens /subscriptions/callback.
+     */
+    public function mobileReturn(Request $request)
+    {
+        $scheme = config('nativephp.deeplink_scheme');
+        if (! is_string($scheme) || $scheme === '') {
+            abort(503, 'Deep link scheme is not configured (NATIVEPHP_DEEPLINK_SCHEME).');
+        }
+
+        $query = array_filter(
+            $request->query(),
+            static fn ($value) => $value !== null && $value !== ''
+        );
+        $deepUrl = $scheme.'://subscriptions/callback'.(count($query) ? '?'.http_build_query($query) : '');
+
+        // HTML bounce: more reliable than Location: custom-scheme from some mobile browsers after payment.
+        return response()->view('subscriptions.mobile-return', ['deepUrl' => $deepUrl]);
+    }
+
     public function callback(Request $request)
     {
         $status = strtolower((string) $request->query('payment_status', 'pending'));
         // After payment, refresh subscription from API
         $token = $request->session()->get('api_token');
-
 
         if ($token) {
             $res = Http::timeout(10)->withToken($token)->get($this->API . '/profile');
@@ -124,13 +145,13 @@ class SubscriptionsController extends Controller
                 $sub = $profile['subscription'] ?? null;
                 if ($sub && ($sub['status'] ?? '') === 'active') {
                     $request->session()->put('subscription', [
-                        'id'           => $sub['id']          ?? null,
-                        'package_id'   => $sub['package_id']  ?? null,
-                        'status'       => 'active',
-                        'cars_count'   => $sub['cars_count']  ?? ($sub['package']['cars_count']  ?? 1),
-                        'addons_count' => $sub['addons_count']?? ($sub['package']['addons_count'] ?? 0),
-                        'title'        => $sub['package']['title'] ?? null,
-                        'expires_at'   => $sub['expires_at']  ?? null,
+                        'id' => $sub['id'] ?? null,
+                        'package_id' => $sub['package_id'] ?? null,
+                        'status' => 'active',
+                        'cars_count' => $sub['cars_count'] ?? ($sub['package']['cars_count'] ?? 1),
+                        'addons_count' => $sub['addons_count'] ?? ($sub['package']['addons_count'] ?? 0),
+                        'title' => $sub['package']['title'] ?? null,
+                        'expires_at' => $sub['expires_at'] ?? null,
                     ]);
                 } else {
                     // Payment pending or failed — clear any stale subscription
@@ -139,6 +160,6 @@ class SubscriptionsController extends Controller
             }
         }
 
-        return redirect('/subscriptions?payment_status=' . urlencode($status));
+        return redirect('/subscriptions?payment_status='.urlencode($status));
     }
 }

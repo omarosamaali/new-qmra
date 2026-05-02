@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Subscription payment (Ziina / APP_BACKEND)
+    |--------------------------------------------------------------------------
+    |
+    | Configure the payment provider success redirect to payment_success_redirect_url.
+    | It must be HTTPS and hit this Laravel app; it then opens the NativePHP app via custom scheme.
+    |
+    */
+    'subscriptions' => [
+        'payment_success_redirect_url' => env(
+            'SUBSCRIPTION_PAYMENT_SUCCESS_URL',
+            rtrim((string) env('APP_URL', ''), '/').'/subscriptions/mobile-return'
+        ),
+    ],
+
 ];

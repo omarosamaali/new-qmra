@@ -132,7 +132,7 @@ export default function Subscriptions({ packages = [], subscription = null, sess
                                 <BackIcon />
                             </button>
                         )}
-                        <h1 className="mx-auto font-bold text-gray-900 text-lg px-4">الاشتراكات</h1>
+                        <h1 className="mx-auto font-bold text-gray-900 text-lg px-4">الاشتراكات {import.meta.env.VITE_APP_VERSION_CODE}</h1>
                     </div>
 
                     {/* {sessionId && (
