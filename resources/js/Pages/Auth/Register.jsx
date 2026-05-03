@@ -69,6 +69,12 @@ export default function Register() {
     const passwordRef = useRef(null);
     const confirmRef  = useRef(null);
 
+    const [nameVal,     setNameVal]     = useState("");
+    const [emailVal,    setEmailVal]    = useState("");
+    const [phoneVal,    setPhoneVal]    = useState("");
+    const [passwordVal, setPasswordVal] = useState("");
+    const [confirmVal,  setConfirmVal]  = useState("");
+
     const t    = T[lang];
     const isAr = lang === "ar";
 
@@ -81,11 +87,11 @@ export default function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const name                  = nameRef.current?.value?.trim()    || "";
-        const email                 = emailRef.current?.value?.trim()   || "";
-        const phone                 = phoneRef.current?.value?.trim()   || "";
-        const password              = passwordRef.current?.value        || "";
-        const password_confirmation = confirmRef.current?.value         || "";
+        const name                  = (nameVal     || nameRef.current?.value     || "").trim();
+        const email                 = (emailVal    || emailRef.current?.value    || "").trim();
+        const phone                 = (phoneVal    || phoneRef.current?.value    || "").trim();
+        const password              =  passwordVal || passwordRef.current?.value || "";
+        const password_confirmation =  confirmVal  || confirmRef.current?.value  || "";
 
         const errs = {};
         if (!name)                              errs.name                  = t.reqName;
@@ -162,7 +168,7 @@ export default function Register() {
                                 defaultValue=""
                                 placeholder={isAr ? "محمد العلي" : "John Smith"}
                                 autoComplete="name"
-                                onChange={() => clearErr("name")}
+                                onChange={e => { setNameVal(e.target.value); clearErr("name"); }}
                                 className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.name ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                             />
                             {errors.name && <p className="text-red-500 text-xs mt-1 text-center">{errors.name}</p>}
@@ -177,7 +183,7 @@ export default function Register() {
                                 defaultValue=""
                                 placeholder="example@email.com"
                                 autoComplete="email"
-                                onChange={() => clearErr("email")}
+                                onChange={e => { setEmailVal(e.target.value); clearErr("email"); }}
                                 className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.email ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                             />
                             {errors.email && <p className="text-red-500 text-xs mt-1 text-center">{errors.email}</p>}
@@ -192,6 +198,7 @@ export default function Register() {
                                 defaultValue=""
                                 placeholder="+971 50 000 0000"
                                 autoComplete="tel"
+                                onChange={e => setPhoneVal(e.target.value)}
                                 className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400"
                             />
                         </div>
@@ -205,7 +212,7 @@ export default function Register() {
                                 defaultValue=""
                                 placeholder="••••••••"
                                 autoComplete="new-password"
-                                onChange={() => clearErr("password")}
+                                onChange={e => { setPasswordVal(e.target.value); clearErr("password"); }}
                                 className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.password ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                             />
                             {!errors.password && <p className="text-gray-400 text-xs mt-1 text-center">{t.passwordHint}</p>}
@@ -221,7 +228,7 @@ export default function Register() {
                                 defaultValue=""
                                 placeholder="••••••••"
                                 autoComplete="new-password"
-                                onChange={() => clearErr("password_confirmation")}
+                                onChange={e => { setConfirmVal(e.target.value); clearErr("password_confirmation"); }}
                                 className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.password_confirmation ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                             />
                             {errors.password_confirmation && <p className="text-red-500 text-xs mt-1 text-center">{errors.password_confirmation}</p>}

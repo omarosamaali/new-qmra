@@ -54,6 +54,8 @@ export default function Login() {
     const [processing, setProcessing] = useState(false);
     const emailRef    = useRef(null);
     const passwordRef = useRef(null);
+    const [emailVal,    setEmailVal]    = useState("");
+    const [passwordVal, setPasswordVal] = useState("");
 
     const t    = T[lang];
     const isAr = lang === "ar";
@@ -65,8 +67,8 @@ export default function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const email    = emailRef.current?.value?.trim()    || "";
-        const password = passwordRef.current?.value?.trim() || "";
+        const email    = (emailVal    || emailRef.current?.value    || "").trim();
+        const password = (passwordVal || passwordRef.current?.value || "").trim();
         const errs = {};
         if (!email)    errs.email    = t.reqEmail;
         if (!password) errs.password = t.reqPassword;
@@ -137,7 +139,7 @@ export default function Login() {
                                 defaultValue=""
                                 placeholder="example@email.com"
                                 autoComplete="email"
-                                onChange={() => setErrors(p => ({ ...p, email: "" }))}
+                                onChange={e => { setEmailVal(e.target.value); setErrors(p => ({ ...p, email: "" })); }}
                                 className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.email ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                             />
                             {errors.email && <p className="text-red-500 text-xs mt-1 text-center">{errors.email}</p>}
@@ -152,7 +154,7 @@ export default function Login() {
                                 defaultValue=""
                                 placeholder="••••••••"
                                 autoComplete="current-password"
-                                onChange={() => setErrors(p => ({ ...p, password: "" }))}
+                                onChange={e => { setPasswordVal(e.target.value); setErrors(p => ({ ...p, password: "" })); }}
                                 className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent placeholder:text-gray-400 ${errors.password ? "border-red-400 bg-red-50" : "border-gray-200"}`}
                             />
                             {errors.password && <p className="text-red-500 text-xs mt-1 text-center">{errors.password}</p>}
