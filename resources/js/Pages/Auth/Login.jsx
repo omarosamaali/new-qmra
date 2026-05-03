@@ -76,7 +76,12 @@ export default function Login() {
         try {
             await axios.get("/sanctum/csrf-cookie");
             const res = await axios.post("/login", { email, password }, {
-                headers: { "X-Requested-With": "XMLHttpRequest", "Accept": "application/json" },
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                },
             });
             window.location.href = res.data?.redirect || "/";
         } catch (err) {
