@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Head, router } from "@inertiajs/react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Head, router, usePage } from "@inertiajs/react";
 import { brandsData } from "../../Components/BrandsData";
 import { BackIcon } from "../../Icons/BackIcon";
 
@@ -23,6 +23,36 @@ const colors = [
 ];
 
 const steps = ["المعلومات", "الإعدادات"];
+
+const firstError = (val) => {
+    if (val == null || val === "") return null;
+    return Array.isArray(val) ? val[0] : val;
+};
+
+const fieldLabel = {
+    plate_number: "رقم اللوحة",
+    brand: "الشركة المصنّعة",
+    year: "سنة الصنع",
+    km: "العداد",
+};
+
+/** Query string so PHP sees inputs via merged query (helps embedded/NativePHP where POST body parsing fails). */
+function buildVehicleStoreQueryString(payload) {
+    const params = new URLSearchParams();
+    Object.entries(payload).forEach(([key, val]) => {
+        if (val === undefined || val === null) {
+            return;
+        }
+        params.append(key, typeof val === "number" ? String(val) : val);
+    });
+    const csrf = typeof document !== "undefined"
+        ? document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+        : "";
+    if (csrf) {
+        params.append("_token", csrf);
+    }
+    return params.toString();
+}
 
 const StepIndicator = ({ current }) => (
     <div className="flex items-center justify-center gap-1.5 mb-6">
@@ -148,12 +178,23 @@ const StepSettings = ({ color, setColor, unit, setUnit, kmRef, regExpiryRef, ins
 );
 
 export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
+    const page = usePage();
+    const pageErrors = page.props.errors ?? {};
+    const [submitErrors, setSubmitErrors] = useState(null);
+    const errors = useMemo(() => ({ ...pageErrors, ...(submitErrors ?? {}) }), [pageErrors, submitErrors]);
+
     const [step, setStep]         = useState(0);
     const [brand, setBrand]       = useState("");
     const [model, setModel]       = useState("");
     const [color, setColor]       = useState("#1A1A1A");
     const [unit, setUnit]         = useState("km");
     const [submitting, setSubmitting] = useState(false);
+
+    useEffect(() => {
+        if (!errors || Object.keys(errors).length === 0) return;
+        if (errors.plate_number || errors.brand || errors.year) setStep(0);
+        else if (errors.km) setStep(1);
+    }, [errors]);
 
     const yearRef       = useRef(null);
     const plateRef      = useRef(null);
@@ -186,28 +227,39 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
         const insuranceExpiry    = insExpiryRef.current?.value    || null;
         const notes              = notesRef.current?.value?.trim() || "";
 
-        console.log("AddVehicle submit →", { submitting, atLimit, year, plateNumber, currentKm, brand, model });
-
-        if (submitting || atLimit) { console.log("blocked: submitting or atLimit"); return; }
-        if (!year || !plateNumber || !currentKm) { console.log("blocked: missing fields"); return; }
+        if (submitting || atLimit) return;
+        if (!year || !plateNumber || !currentKm) return;
 
         const brandObj = brandsData.find(b => b.en === brand);
         const modelObj = brandObj?.models.find(m => m.en === model);
         setSubmitting(true);
-        router.post("/vehicles", {
-            name_ar:             `${brandObj?.ar ?? brand} ${modelObj?.ar ?? model}`,
-            name_en:             `${brand} ${model}`,
+        setSubmitErrors(null);
+
+        const payload = {
+            name_ar: `${brandObj?.ar ?? brand} ${modelObj?.ar ?? model}`,
+            name_en: `${brand} ${model}`,
             brand,
-            type:                "sedan",
-            plate_number:        plateNumber,
-            km:                  Number(currentKm),
+            type: "sedan",
+            plate_number: plateNumber,
+            km: Number(currentKm),
             unit,
             color,
-            year:                Number(year),
-            registration_expiry: registrationExpiry || null,
-            insurance_expiry:    insuranceExpiry    || null,
-            notes:               notes || null,
-        }, { onFinish: () => setSubmitting(false) });
+            year: Number(year),
+            ...(registrationExpiry ? { registration_expiry: registrationExpiry } : {}),
+            ...(insuranceExpiry ? { insurance_expiry: insuranceExpiry } : {}),
+            ...(notes ? { notes } : {}),
+        };
+
+        const qs = buildVehicleStoreQueryString(payload);
+        const csrfHeader = typeof document !== "undefined"
+            ? document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ?? ""
+            : "";
+        router.post(`/vehicles?${qs}`, {}, {
+            preserveScroll: true,
+            headers: csrfHeader ? { "X-CSRF-TOKEN": csrfHeader } : {},
+            onError: (errs) => setSubmitErrors(errs),
+            onFinish: () => setSubmitting(false),
+        });
     };
 
     return (
@@ -244,6 +296,24 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
                         <>
                             <div className="flex-1 overflow-y-auto no-scrollbar">
                                 <div className="px-4 pt-5 pb-32">
+                                    {Object.keys(errors).length > 0 && (
+                                        <div
+                                            className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 space-y-1.5"
+                                            role="alert"
+                                        >
+                                            <p className="font-semibold text-red-900">تعذّر حفظ المركبة</p>
+                                            {Object.entries(errors).map(([key, msg]) => {
+                                                const line = firstError(msg);
+                                                if (!line) return null;
+                                                return (
+                                                    <p key={key}>
+                                                        {(fieldLabel[key] ? `${fieldLabel[key]}: ` : "")}
+                                                        {line}
+                                                    </p>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                     <StepIndicator current={step} />
                                     {step === 0 && (
                                         <StepInfo

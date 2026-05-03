@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -16,7 +17,11 @@
             OneSignalDeferred.push(async function(OneSignal) {
                 await OneSignal.init({ appId: "d931525f-d834-404e-ac9d-2637743cca16" });
                 @auth
-                OneSignal.login("{{ Auth::id() }}");
+                    @php
+                        $userEmail = request()->session()->get('auth_user', [])['email'] ?? 'no email';
+                        $userId = App\Models\User::where('email', $userEmail)->first()?->id ?? 0;
+                    @endphp
+                    OneSignal.login("{{ $userId }}");
                 @endauth
             });
         </script>

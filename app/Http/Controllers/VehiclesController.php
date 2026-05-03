@@ -20,9 +20,17 @@ class VehiclesController extends Controller
 
         $request->validate([
             'plate_number' => 'required|string',
-            'brand'        => 'required|string',
-            'year'         => 'required|integer',
-            'km'           => 'required|integer|min:0',
+            'brand' => 'required|string',
+            'year' => 'required|integer|min:1990|max:'.((int) date('Y') + 1),
+            'km' => 'required|integer|min:0',
+        ], [
+            'plate_number.required' => 'رقم اللوحة مطلوب.',
+            'brand.required' => 'الشركة المصنّعة مطلوبة.',
+            'year.required' => 'سنة الصنع مطلوبة.',
+            'year.integer' => 'سنة الصنع غير صالحة.',
+            'km.required' => 'قيمة العداد مطلوبة.',
+            'km.integer' => 'العداد يجب أن يكون رقماً صحيحاً.',
+            'km.min' => 'العداد لا يمكن أن يكون سالباً.',
         ]);
 
         Vehicle::create([
