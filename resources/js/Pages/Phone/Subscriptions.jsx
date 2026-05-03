@@ -94,7 +94,7 @@ export default function Subscriptions({ packages = [], subscription = null, sess
         setError("");
         try {
             const pkg = packages.find(p => p.id === packageId);
-            const res = await axios.post(`/subscriptions/${packageId}/${billing || 'monthly'}`, {
+            const res = await axios.post(`/subscriptions/${packageId}/${billing || 'monthly'}`, {}, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
