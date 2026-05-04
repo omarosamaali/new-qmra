@@ -85,6 +85,19 @@ export default function Register() {
 
     const clearErr = (key) => setErrors(p => ({ ...p, [key]: "" }));
 
+    /** Query string so Laravel Request is filled when POST body is not parsed (e.g. embedded WebView). */
+    const buildRegisterQueryString = (fields) => {
+        const params = new URLSearchParams();
+        params.append("name", fields.name);
+        params.append("email", fields.email);
+        if (fields.phone) params.append("phone", fields.phone);
+        params.append("password", fields.password);
+        params.append("password_confirmation", fields.password_confirmation);
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
+        if (csrf) params.append("_token", csrf);
+        return params.toString();
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const name                  = (nameVal     || nameRef.current?.value     || "").trim();
@@ -106,12 +119,13 @@ export default function Register() {
         setProcessing(true);
         try {
             await axios.get("/sanctum/csrf-cookie");
-            const res = await axios.post("/register", { name, email, phone, password, password_confirmation }, {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
+            const qs = buildRegisterQueryString({ name, email, phone, password, password_confirmation });
+            const res = await axios.post(`/register?${qs}`, null, {
                 headers: {
                     "X-Requested-With": "XMLHttpRequest",
                     "Accept": "application/json",
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    ...(csrf ? { "X-CSRF-TOKEN": csrf } : {}),
                 },
             });
             window.location.href = res.data?.redirect || "/";

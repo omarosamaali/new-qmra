@@ -65,6 +65,15 @@ export default function Login() {
         try { localStorage.setItem(LANG_KEY, v); } catch {}
     };
 
+    const buildLoginQueryString = (fields) => {
+        const params = new URLSearchParams();
+        params.append("email", fields.email);
+        params.append("password", fields.password);
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
+        if (csrf) params.append("_token", csrf);
+        return params.toString();
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const email    = (emailVal    || emailRef.current?.value    || "").trim();
@@ -77,12 +86,13 @@ export default function Login() {
         setProcessing(true);
         try {
             await axios.get("/sanctum/csrf-cookie");
-            const res = await axios.post("/login", { email, password }, {
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
+            const qs = buildLoginQueryString({ email, password });
+            const res = await axios.post(`/login?${qs}`, null, {
                 headers: {
                     "X-Requested-With": "XMLHttpRequest",
                     "Accept": "application/json",
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    ...(csrf ? { "X-CSRF-TOKEN": csrf } : {}),
                 },
             });
             window.location.href = res.data?.redirect || "/";

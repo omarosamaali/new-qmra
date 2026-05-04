@@ -60,17 +60,16 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
         if (!form.serviceId || submitting) return;
         const rec = RECURRENCE_OPTIONS.find(o => o.value === form.recurrence);
         setSubmitting(true);
+        const q = new URLSearchParams();
+        q.set("vehicle_id", String(vehicleId));
+        q.set("service_id", String(Number(form.serviceId)));
+        if (rec?.km != null) q.set("interval_km", String(rec.km));
+        if (rec?.days != null) q.set("interval_days", String(rec.days));
+        if (form.cost) q.set("cost", form.cost);
+        if (form.notes) q.set("notes", form.notes);
         router.post(
-            "/services",
-            {
-                vehicle_id: vehicleId,
-                service_id: Number(form.serviceId),
-                interval_km: rec?.km ?? null,
-                interval_days: rec?.days ?? null,
-                due_date: null,
-                cost: form.cost || null,
-                notes: form.notes || null,
-            },
+            `/services?${q.toString()}`,
+            {},
             { onFinish: () => { setSubmitting(false); onClose(); } }
         );
     };

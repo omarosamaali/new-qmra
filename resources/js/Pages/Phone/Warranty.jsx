@@ -278,14 +278,14 @@ export default function Warranty({ vehicles = [], warranties = [], defaultVehicl
     );
 
     const handleAdd = (form) => {
-        router.post("/warranty", {
-            vehicle_id: modalVehicleId,
-            titleAr:    form.titleAr,
-            titleEn:    form.titleEn,
-            icon:       form.icon,
-            provider:   form.provider,
-            notes:      form.notes,
-        }, { onSuccess: () => setModalVehicleId(null) });
+        const q = new URLSearchParams();
+        q.set("vehicle_id", String(modalVehicleId));
+        q.set("titleAr", form.titleAr);
+        q.set("titleEn", form.titleEn);
+        q.set("icon", form.icon);
+        if (form.provider) q.set("provider", form.provider);
+        if (form.notes) q.set("notes", form.notes);
+        router.post(`/warranty?${q.toString()}`, {}, { onSuccess: () => setModalVehicleId(null) });
     };
 
     return (

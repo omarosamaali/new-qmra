@@ -73,17 +73,16 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
         const cost  = costRef.current?.value?.trim()  || null;
         const notes = notesRef.current?.value?.trim() || null;
         setSubmitting(true);
+        const q = new URLSearchParams();
+        q.set("vehicle_id", String(vehicleId));
+        q.set("service_id", String(Number(serviceId)));
+        if (rec?.km != null) q.set("interval_km", String(rec.km));
+        if (rec?.days != null) q.set("interval_days", String(rec.days));
+        if (cost) q.set("cost", cost);
+        if (notes) q.set("notes", notes);
         router.post(
-            "/services",
-            {
-                vehicle_id:    vehicleId,
-                service_id:    Number(serviceId),
-                interval_km:   rec?.km   ?? null,
-                interval_days: rec?.days ?? null,
-                due_date:      null,
-                cost:          cost  || null,
-                notes:         notes || null,
-            },
+            `/services?${q.toString()}`,
+            {},
             { onFinish: () => { setSubmitting(false); onClose(); } }
         );
     };
