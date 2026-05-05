@@ -13,17 +13,31 @@
         @inertiaHead
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
         <script>
+            // Web push (browser)
             window.OneSignalDeferred = window.OneSignalDeferred || [];
             OneSignalDeferred.push(async function(OneSignal) {
                 await OneSignal.init({ appId: "d931525f-d834-404e-ac9d-2637743cca16" });
                 @auth
-                    @php
-                        $userEmail = request()->session()->get('auth_user', [])['email'] ?? 'no email';
-                        $userId = App\Models\User::where('email', $userEmail)->first()?->id ?? 0;
-                    @endphp
-                    OneSignal.login("{{ $userId }}");
+                OneSignal.login("{{ Auth::id() }}");
                 @endauth
             });
+
+            // Native Android push (NativePHP APK) — bridge injected by MainActivity.kt
+            @auth
+            (function() {
+                var userId = "{{ Auth::id() }}";
+                function linkNative() {
+                    if (window.OneSignalBridge && userId) {
+                        window.OneSignalBridge.setExternalUserId(userId);
+                    }
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', linkNative);
+                } else {
+                    linkNative();
+                }
+            })();
+            @endauth
         </script>
     </head>
     <body class="font-sans antialiased">
