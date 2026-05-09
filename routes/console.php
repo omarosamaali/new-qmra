@@ -8,4 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('reminders:notify')->dailyAt('09:00');
+// Local reminders are scheduled on-device (Android), so disable remote push scheduling.
+// Schedule::command('reminders:notify')->dailyAt('09:00');

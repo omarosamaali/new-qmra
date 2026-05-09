@@ -23,32 +23,32 @@ class SubscriptionsController extends Controller
         // After Ziina payment the external API marks the subscription active but never
         // calls our callback, so the session has no subscription yet. Re-check the API
         // on every visit to /subscriptions and redirect home if we find an active one.
-        // if ($token) {
-        //     try {
-        //         $profileRes = Http::timeout(8)->withToken($token)->get(self::API . '/profile');
-        //         if ($profileRes->successful()) {
-        //             $profile = $profileRes->json('data') ?? $profileRes->json();
-        //             $sub     = $profile['subscription'] ?? null;
-        //             if ($sub && ($sub['status'] ?? '') === 'active') {
-        //                 $expiresAt = $sub['expires_at'] ?? null;
-        //                 if (!$expiresAt || !Carbon::parse($expiresAt)->isPast()) {
-        //                     $request->session()->put('subscription', [
-        //                         'id'           => $sub['id']           ?? null,
-        //                         'package_id'   => $sub['package_id']   ?? null,
-        //                         'status'       => 'active',
-        //                         'cars_count'   => $sub['cars_count']   ?? ($sub['package']['cars_count']   ?? 1),
-        //                         'addons_count' => $sub['addons_count'] ?? ($sub['package']['addons_count'] ?? 0),
-        //                         'title'        => $sub['package']['title'] ?? null,
-        //                         'expires_at'   => $expiresAt,
-        //                     ]);
-        //                     return redirect('/');
-        //                 }
-        //             }
-        //         }
-        //     } catch (\Exception $e) {
-        //         // Profile fetch failed — show subscription page normally
-        //     }
-        // }
+        if ($token) {
+            try {
+                $profileRes = Http::timeout(8)->withToken($token)->get($this->API . '/profile');
+                if ($profileRes->successful()) {
+                    $profile = $profileRes->json('data') ?? $profileRes->json();
+                    $sub     = $profile['subscription'] ?? null;
+                    if ($sub && ($sub['status'] ?? '') === 'active') {
+                        $expiresAt = $sub['expires_at'] ?? null;
+                        if (!$expiresAt || !Carbon::parse($expiresAt)->isPast()) {
+                            $request->session()->put('subscription', [
+                                'id'           => $sub['id']           ?? null,
+                                'package_id'   => $sub['package_id']   ?? null,
+                                'status'       => 'active',
+                                'cars_count'   => $sub['cars_count']   ?? ($sub['package']['cars_count']   ?? 1),
+                                'addons_count' => $sub['addons_count'] ?? ($sub['package']['addons_count'] ?? 0),
+                                'title'        => $sub['package']['title'] ?? null,
+                                'expires_at'   => $expiresAt,
+                            ]);
+                            // return redirect('/');
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // Profile fetch failed — show subscription page normally
+            }
+        }
 
         $packages = [];
         $res = Http::timeout(10)->withToken($token)->get($this->API.'/packages');

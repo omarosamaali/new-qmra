@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Head, router } from "@inertiajs/react";
 
 const BackIcon = () => (
@@ -40,6 +40,76 @@ const to12h = (time24) => {
 const isUpcoming = (r) => !r.completed && (!r.dueDate || new Date(r.dueDate) >= today);
 const isPast     = (r) => !r.completed && r.dueDate && new Date(r.dueDate) < today;
 const isDone     = (r) => r.completed;
+
+const hasReminderBridge = () =>
+    typeof window !== "undefined" &&
+    window.ReminderBridge &&
+    typeof window.ReminderBridge.scheduleReminder === "function" &&
+    typeof window.ReminderBridge.cancelReminder === "function";
+
+const parseReminderDateTime = (dueDate, dueTime) => {
+    if (!dueDate) return null;
+    const normalizedTime = dueTime && dueTime.length >= 5 ? dueTime.slice(0, 5) : "09:00";
+    const value = new Date(`${dueDate}T${normalizedTime}:00`);
+    return Number.isNaN(value.getTime()) ? null : value;
+};
+
+const scheduleReminderNative = (reminder) => {
+    if (!hasReminderBridge()) return;
+    if (reminder.completed || !reminder.dueDate) {
+        window.ReminderBridge.cancelReminder(String(reminder.id));
+        return;
+    }
+
+    const scheduledAt = parseReminderDateTime(reminder.dueDate, reminder.dueTime);
+    if (!scheduledAt || scheduledAt.getTime() <= Date.now()) {
+        window.ReminderBridge.cancelReminder(String(reminder.id));
+        return;
+    }
+
+    const title = reminder.titleAr || "تنبيه قمرة";
+    const body = reminder.notes?.trim() || "لديك تذكير مستحق الآن";
+    const route = "/reminders";
+    window.ReminderBridge.scheduleReminder(
+        String(reminder.id),
+        title,
+        body,
+        reminder.dueDate,
+        reminder.dueTime || "",
+        route
+    );
+};
+
+const cancelReminderNative = (id) => {
+    if (!hasReminderBridge()) return;
+    window.ReminderBridge.cancelReminder(String(id));
+};
+
+const syncReminderSchedules = (reminders) => {
+    if (!hasReminderBridge()) return;
+    reminders.forEach((reminder) => {
+        if (reminder.completed || !reminder.dueDate) {
+            cancelReminderNative(reminder.id);
+            return;
+        }
+        scheduleReminderNative(reminder);
+    });
+};
+
+const buildReminderQueryString = (payload) => {
+    const params = new URLSearchParams();
+    Object.entries(payload).forEach(([key, val]) => {
+        if (val === undefined || val === null) return;
+        params.append(key, typeof val === "number" ? String(val) : val);
+    });
+
+    const csrf = typeof document !== "undefined"
+        ? document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+        : "";
+    if (csrf) params.append("_token", csrf);
+
+    return params.toString();
+};
 
 
 function ReminderCard({ reminder, vehicles, onComplete, onDelete, onEdit }) {
@@ -139,15 +209,16 @@ function ReminderModal({ vehicles, reminder, onClose }) {
             due_date:   dueDate || null,
             due_time:   dueTime || null,
         };
+        const qs = buildReminderQueryString(payload);
         const opts = {
             preserveScroll: true,
             onSuccess: () => onClose(),
             onError: () => setSaving(false),
         };
         if (isEdit) {
-            router.put(`/reminders/${reminder.id}`, payload, opts);
+            router.put(`/reminders/${reminder.id}?${qs}`, {}, opts);
         } else {
-            router.post('/reminders', payload, opts);
+            router.post(`/reminders?${qs}`, {}, opts);
         }
     };
 
@@ -257,12 +328,18 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
     const pastCount     = reminders.filter(isPast).length;
     const doneCount     = reminders.filter(isDone).length;
 
+    useEffect(() => {
+        syncReminderSchedules(reminders);
+    }, [reminders]);
+
     const handleComplete = (id) => {
+        cancelReminderNative(id);
         router.post(`/reminders/${id}/complete`, {}, { preserveScroll: true });
     };
 
     const handleDelete = (id) => {
         if (!confirm("تأكيد الحذف؟")) return;
+        cancelReminderNative(id);
         router.delete(`/reminders/${id}`, { preserveScroll: true });
     };
 

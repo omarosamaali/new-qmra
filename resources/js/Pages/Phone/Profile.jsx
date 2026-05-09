@@ -102,8 +102,9 @@ export default function Profile({ user, subscription, package: pkg }) {
     const handleSaveProfile = () => {
         const name  = nameRef.current?.value?.trim()  || "";
         const email = emailRef.current?.value?.trim() || "";
+        const params = new URLSearchParams({ name, email });
         setProcessing(true);
-        router.put('/profile', { name, email }, {
+        router.put(`/profile?${params.toString()}`, {}, {
             onSuccess: () => setIsEditing(false),
             onFinish:  () => setProcessing(false),
         });

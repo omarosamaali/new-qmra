@@ -88,6 +88,8 @@ class ProfileController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
 
+        dump($request->all(), Auth::user(), $request->session()->get('api_token'));
+
         // Update local user
         Auth::user()->update($request->only(['name', 'email', 'phone']));
 
@@ -101,11 +103,15 @@ class ProfileController extends Controller
             }
         }
 
+        dump($request->all(), Auth::user(), $request->session()->get('api_token'));
+
         // Refresh session user
         $request->session()->put('auth_user', array_merge(
             $request->session()->get('auth_user', []),
             ['name' => $request->name, 'email' => $request->email, 'phone' => $request->phone]
         ));
+
+        dd($request->session()->get('auth_user'));
 
         return redirect()->route('profile');
     }
