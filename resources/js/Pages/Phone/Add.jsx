@@ -9,6 +9,14 @@ const BackIcon = () => (
 
 const options = [
     {
+        icon: "🔔",
+        ar: "إضافة تذكير",
+        en: "Add Reminder",
+        route: "/reminders",
+        desc_ar: "أضف تذكير لمركبتك",
+        desc_en: "Add a reminder for your vehicle",
+    },
+    {
         icon: "🛢️",
         ar: "إضافة خدمة",
         en: "Add Service",

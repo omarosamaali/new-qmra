@@ -365,7 +365,7 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
                 <div className="w-full max-w-sm min-h-screen flex flex-col bg-gray-100">
 
                     {/* Header */}
-                    <div className="bg-white sticky top-0 z-20 shadow-sm">
+                    <div className="bg-white sticky top-0 z-20 shadow-sm safe-header">
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => router.get("/")}

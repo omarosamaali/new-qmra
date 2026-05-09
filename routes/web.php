@@ -139,6 +139,7 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
     });
     Route::get('/warranty', [WarrantyController::class, 'index']);
     Route::post('/warranty', [WarrantyController::class, 'store']);
+    Route::put('/warranty/{id}', [WarrantyController::class, 'update']);
     Route::delete('/warranty/{id}', [WarrantyController::class, 'destroy']);
     Route::get('/add-service', fn () => Inertia::render('Phone/AddService'));
     Route::get('/add', fn () => Inertia::render('Phone/Add'));

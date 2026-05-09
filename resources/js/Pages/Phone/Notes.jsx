@@ -37,7 +37,7 @@ const COLORS = [
 
 const formatDate = (iso) => {
     const d = new Date(iso);
-    return d.toLocaleDateString("ar-SA", { year: "numeric", month: "short", day: "numeric" });
+    return d.toLocaleDateString("ar-SA-u-nu-latn", { year: "numeric", month: "short", day: "numeric" });
 };
 
 export default function Notes() {
@@ -48,8 +48,10 @@ export default function Notes() {
     const [search, setSearch]     = useState("");
     const [confirmDel, setConfirmDel] = useState(null);
 
-    const titleRef   = useRef(null);
-    const contentRef = useRef(null);
+    const titleRef      = useRef(null);
+    const contentRef    = useRef(null);
+    const reminderDateRef = useRef(null);
+    const reminderTimeRef = useRef(null);
 
     useEffect(() => { save(notes); }, [notes]);
 
@@ -66,15 +68,17 @@ export default function Notes() {
     };
 
     const saveNote = () => {
-        const t = titleRef.current?.value?.trim()   || "";
-        const c = contentRef.current?.value?.trim() || "";
+        const t  = titleRef.current?.value?.trim()      || "";
+        const c  = contentRef.current?.value?.trim()    || "";
+        const rd = reminderDateRef.current?.value        || "";
+        const rt = reminderTimeRef.current?.value        || "";
         if (!t && !c) return;
         if (modal === "add") {
-            const n = { id: Date.now(), title: t, content: c, colorIdx, createdAt: new Date().toISOString() };
+            const n = { id: Date.now(), title: t, content: c, colorIdx, createdAt: new Date().toISOString(), reminderDate: rd || null, reminderTime: rt || null };
             setNotes(p => [n, ...p]);
         } else {
             setNotes(p => p.map(n => n.id === active.id
-                ? { ...n, title: t, content: c, colorIdx, updatedAt: new Date().toISOString() }
+                ? { ...n, title: t, content: c, colorIdx, updatedAt: new Date().toISOString(), reminderDate: rd || null, reminderTime: rt || null }
                 : n
             ));
         }
@@ -160,7 +164,10 @@ export default function Notes() {
                                                     {note.content}
                                                 </p>
                                             )}
-                                            <p className="text-xs text-gray-400">{formatDate(note.updatedAt ?? note.createdAt)}</p>
+                                            <div className="flex items-center justify-between gap-1">
+                                                <p className="text-xs text-gray-400">{formatDate(note.updatedAt ?? note.createdAt)}</p>
+                                                {note.reminderDate && <span className="text-xs text-[#800000]">⏰</span>}
+                                            </div>
                                         </button>
                                     );
                                 })}
@@ -249,9 +256,34 @@ export default function Notes() {
                                 ref={contentRef}
                                 defaultValue={active?.content ?? ""}
                                 placeholder="اكتب ملاحظتك هنا..."
-                                rows={8}
+                                rows={6}
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400 resize-none"
                             />
+
+                            {/* Reminder */}
+                            <div className="border border-gray-200 rounded-xl p-3 space-y-2 bg-gray-50">
+                                <p className="text-xs font-semibold text-gray-500">⏰ تنبيه (اختياري)</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label className="text-xs text-gray-400 block mb-1">التاريخ</label>
+                                        <input
+                                            ref={reminderDateRef}
+                                            type="date"
+                                            defaultValue={active?.reminderDate ?? ""}
+                                            className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#800000]"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-gray-400 block mb-1">الوقت</label>
+                                        <input
+                                            ref={reminderTimeRef}
+                                            type="time"
+                                            defaultValue={active?.reminderTime ?? ""}
+                                            className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#800000]"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="px-5 pb-8 pt-3 border-t border-gray-100">

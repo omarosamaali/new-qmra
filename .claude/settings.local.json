@@ -16,7 +16,8 @@
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
       "Bash(composer remove *)",
-      "Bash(git -C f:/qumra ls-files public/build/)"
+      "Bash(git -C f:/qumra ls-files public/build/)",
+      "Bash(del \"f:\\\\qumra\\\\MainActivity.kt\")"
     ]
   }
 }
