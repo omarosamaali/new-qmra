@@ -15,7 +15,9 @@
       "WebFetch(domain:radiotune.fm)",
       "WebFetch(domain:theonestopradio.com)",
       "WebFetch(domain:quranradio.net)",
-      "WebFetch(domain:online-radio.eu)"
+      "WebFetch(domain:online-radio.eu)",
+      "Bash(cd f:\\\\qumra && git show HEAD:resources/js/Pages/Phone/Reminders.jsx > /tmp/reminders_remote.jsx && grep -n \"safe-header\\\\|safe_header\\\\|Header\\\\|header\" /tmp/reminders_remote.jsx | head -20)",
+      "Read(//tmp/**)"
     ]
   }
 }
