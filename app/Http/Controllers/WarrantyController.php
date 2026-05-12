@@ -31,13 +31,14 @@ class WarrantyController extends Controller
 
         $vehicleIds = $vehicles->pluck('id');
         $warranties = Warranty::whereIn('vehicle_id', $vehicleIds)->get()->map(fn($w) => [
-            'id'        => $w->id,
-            'vehicleId' => $w->vehicle_id,
-            'titleAr'   => $w->title_ar,
-            'titleEn'   => $w->title_en,
-            'icon'      => $w->icon,
-            'provider'  => $w->provider,
-            'notes'     => $w->notes,
+            'id'         => $w->id,
+            'vehicleId'  => $w->vehicle_id,
+            'titleAr'    => $w->title_ar,
+            'titleEn'    => $w->title_en,
+            'icon'       => $w->icon,
+            'expiryDate' => $w->expiry_date?->toDateString(),
+            'provider'   => $w->provider,
+            'notes'      => $w->notes,
         ]);
 
         return Inertia::render('Phone/Warranty', [
@@ -69,6 +70,21 @@ class WarrantyController extends Controller
             'icon'       => $request->input('icon', '🛡️'),
             'provider'   => $request->input('provider'),
             'notes'      => $request->input('notes'),
+        ]);
+
+        return back();
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $userId = $this->userId();
+        $w = Warranty::findOrFail($id);
+        Vehicle::where('id', $w->vehicle_id)->where('user_id', $userId)->firstOrFail();
+
+        $w->update([
+            'expiry_date' => $request->input('expiry_date') ?: $w->expiry_date,
+            'provider'    => $request->has('provider') ? ($request->input('provider') ?: null) : $w->provider,
+            'notes'       => $request->has('notes')    ? ($request->input('notes')    ?: null) : $w->notes,
         ]);
 
         return back();

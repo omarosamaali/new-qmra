@@ -64,9 +64,10 @@ class VehiclesController extends Controller
             'type'                  => $request->type                ?? $vehicle->type,
             'plate_number'          => $request->plateNumber         ?? $vehicle->plate_number,
             'km'                    => $request->km                  ?? $vehicle->km,
+            'unit'                  => $request->unit                ?? $vehicle->unit,
             'color'                 => $request->color               ?? $vehicle->color,
             'year'                  => $request->year                ?? $vehicle->year,
-            'image'                 => $request->image               ?? $vehicle->image,
+            'image'                 => $vehicle->image,
             'registration_expiry'   => $request->has('registrationExpiry') ? ($request->registrationExpiry ?: null) : $vehicle->registration_expiry,
             'insurance_expiry'      => $request->has('insuranceExpiry')    ? ($request->insuranceExpiry    ?: null) : $vehicle->insurance_expiry,
         ]);

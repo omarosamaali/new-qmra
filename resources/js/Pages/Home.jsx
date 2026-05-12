@@ -103,7 +103,7 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
                 </div>
 
                 {/* Footer */}
-                <div className="px-5 py-4 border-t border-gray-100">
+                <div className="px-5 py-4 border-t border-gray-100 pb-safe">
                     <button
                         onClick={() => { handleClose(); setTimeout(() => router.get("/login"), 300); }}
                         className="w-full flex items-center gap-3 py-2 text-gray-400"
@@ -174,16 +174,14 @@ const PRESET_COLORS = ["#1a1a1a","#4a4a4a","#c0c0c0","#ffffff","#800000","#cc220
 
 const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
     const [form, setForm] = useState({
-        nameAr: vehicle.nameAr,
-        nameEn: vehicle.nameEn,
-        brand: vehicle.brand,
-        year: String(vehicle.year),
-        plateNumber: vehicle.plateNumber,
-        km: String(vehicle.km),
-        type: vehicle.type,
-        color: vehicle.color,
-        unit: vehicle.unit || "km",
-        image: vehicle.image || null,
+        brand:               vehicle.brand,
+        year:                String(vehicle.year),
+        plateNumber:         vehicle.plateNumber,
+        km:                  String(vehicle.km),
+        color:               vehicle.color,
+        unit:                vehicle.unit || "km",
+        registrationExpiry:  vehicle.registrationExpiry || "",
+        insuranceExpiry:     vehicle.insuranceExpiry    || "",
     });
     const [visible, setVisible] = useState(false);
 
@@ -197,16 +195,8 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
         onSave({ ...vehicle, ...form, year: Number(form.year), km: Number(form.km) });
         handleClose();
     };
-    const handleImage = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => setForm(f => ({ ...f, image: ev.target.result }));
-        reader.readAsDataURL(file);
-    };
 
     const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400";
-    const VIcon = form.type === "suv" ? SuvIcon : CarIcon;
 
     return (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -218,31 +208,6 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
                 </h2>
 
                 <div className="overflow-y-auto max-h-[72vh] no-scrollbar space-y-4 pb-2" dir={isAr ? "rtl" : "ltr"}>
-                    {/* Image upload */}
-                    <div className="flex justify-center">
-                        <label className="relative cursor-pointer">
-                            <div className="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center" style={{ backgroundColor: form.color + "20" }}>
-                                {form.image
-                                    ? <img src={form.image} className="w-full h-full object-cover" alt="" />
-                                    : <VIcon color={form.color} className="w-12 h-12" />
-                                }
-                            </div>
-                            <div className="absolute -bottom-1 -left-1 w-7 h-7 bg-[#800000] rounded-full flex items-center justify-center text-white shadow">
-                                <CameraIcon />
-                            </div>
-                            <input type="file" accept="image/*" className="hidden" onChange={handleImage} />
-                        </label>
-                    </div>
-
-                    {/* Names */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("الاسم بالعربي", "Arabic Name")}</label>
-                        <input type="text" value={form.nameAr} onChange={e => setForm(f => ({ ...f, nameAr: e.target.value }))} className={inputClass} dir="rtl" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("الاسم بالإنجليزي", "English Name")}</label>
-                        <input type="text" value={form.nameEn} onChange={e => setForm(f => ({ ...f, nameEn: e.target.value }))} className={inputClass} dir="ltr" />
-                    </div>
 
                     {/* Brand + Year */}
                     <div className="flex gap-3">
@@ -256,31 +221,47 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
                         </div>
                     </div>
 
-                    {/* Plate + KM */}
-                    <div className="flex gap-3">
-                        <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("رقم اللوحة", "Plate No.")}</label>
-                            <input type="text" value={form.plateNumber} onChange={e => setForm(f => ({ ...f, plateNumber: e.target.value }))} className={inputClass} dir="ltr" />
-                        </div>
-                        <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                {form.unit === "mi" ? t("المسافة (ميل)", "Mileage (mi)") : t("الكيلومتر", "Mileage (km)")}
-                            </label>
-                            <input type="number" value={form.km} onChange={e => setForm(f => ({ ...f, km: e.target.value }))} className={inputClass} dir="ltr" />
-                        </div>
+                    {/* Plate */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("رقم اللوحة", "Plate No.")}</label>
+                        <input type="text" value={form.plateNumber} onChange={e => setForm(f => ({ ...f, plateNumber: e.target.value }))} className={inputClass} dir="ltr" />
                     </div>
 
-                    {/* Type */}
+                    {/* Unit toggle */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("نوع المركبة", "Vehicle Type")}</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("نوع العداد", "Odometer Unit")}</label>
                         <div className="flex gap-3">
-                            {[{ v: "sedan", l: t("سيدان", "Sedan") }, { v: "suv", l: t("دفع رباعي", "SUV") }].map(({ v, l }) => (
-                                <button key={v} type="button" onClick={() => setForm(f => ({ ...f, type: v }))}
-                                    className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${form.type === v ? "bg-[#800000] text-white" : "bg-gray-100 text-gray-600"}`}>
-                                    {l}
+                            {[{ v: "km", ar: "كيلومتر", en: "km" }, { v: "mi", ar: "ميل", en: "mi" }].map(({ v, ar, en }) => (
+                                <button key={v} type="button" onClick={() => setForm(f => ({ ...f, unit: v }))}
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all border ${
+                                        form.unit === v ? "bg-[#800000] text-white border-[#800000]" : "bg-gray-50 text-gray-600 border-gray-200"
+                                    }`}>
+                                    <span>{ar}</span>
+                                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${form.unit === v ? "bg-white/20 text-white" : "bg-gray-200 text-gray-500"}`}>{en}</span>
                                 </button>
                             ))}
                         </div>
+                    </div>
+
+                    {/* KM */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            {form.unit === "mi" ? t("العداد الحالي (ميل)", "Current Mileage (mi)") : t("العداد الحالي (كم)", "Current Mileage (km)")}
+                        </label>
+                        <div className="relative">
+                            <input type="number" value={form.km} onChange={e => setForm(f => ({ ...f, km: e.target.value }))} className={inputClass} dir="ltr" />
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">{form.unit === "mi" ? "mi" : "كم"}</span>
+                        </div>
+                    </div>
+
+                    {/* Expiry dates */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("تاريخ انتهاء التسجيل", "Registration Expiry")}</label>
+                        <input type="date" value={form.registrationExpiry} onChange={e => setForm(f => ({ ...f, registrationExpiry: e.target.value }))} className={inputClass} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("تاريخ انتهاء التأمين", "Insurance Expiry")}</label>
+                        <input type="date" value={form.insuranceExpiry} onChange={e => setForm(f => ({ ...f, insuranceExpiry: e.target.value }))} className={inputClass} />
                     </div>
 
                     {/* Color */}
@@ -695,7 +676,11 @@ const ServiceChip = ({ service, isSelected, onClick, isAr }) => (
 
 export default function Home({ vehicles = [], services = [], reminders = [], records = [], warranties = [], vehicleServicesCount = 0, vehicleServices = [], subscription = {} }) {
     const [localVehicles, setLocalVehicles] = useState(vehicles);
+    const [notesCount, setNotesCount] = useState(0);
     useEffect(() => { setLocalVehicles(vehicles); }, [vehicles]);
+    useEffect(() => {
+        try { setNotesCount((JSON.parse(localStorage.getItem("qumra_notes")) ?? []).length); } catch {}
+    }, []);
 
     // Browser notifications for expiry alerts
     useEffect(() => {
@@ -786,7 +771,7 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
     today.setHours(0, 0, 0, 0);
 
     const upcomingReminders = reminders
-        .filter((r) => !r.completed && new Date(r.dueDate) >= today)
+        .filter((r) => !r.completed && (!r.dueDate || new Date(r.dueDate) >= today))
         .filter((r) => !selectedVehicleId || r.vehicleId === selectedVehicleId)
         .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
         .slice(0, 5);
@@ -841,37 +826,11 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
 
                             {/* Stats */}
                             <div className="grid grid-cols-2 gap-2.5">
-                                <StatCard label={t("مركباتي", "My Vehicles")} value={localVehicles.length} />
-                                <StatCard label={t("التنبيهات", "Reminders")} value={activeReminders} onClick={() => router.get("/reminders")} />
+                                <StatCard label={t("المفكرة", "Notes")} value={notesCount} onClick={() => router.get("/notes")} />
                                 <StatCard label={t("الخدمات", "Services")} value={vehicleServicesCount} onClick={() => router.get("/services")} />
                                 <StatCard label={t("الضمان", "Warranty")} value={warranties.length} onClick={() => router.get("/warranty")} />
+                                <StatCard label={t("مركباتي", "My Vehicles")} value={localVehicles.length} />
                             </div>
-
-                            {/* Expiry alerts */}
-                            {expiryAlerts.length > 0 && (
-                                <div className="space-y-2">
-                                    {expiryAlerts.map((a, i) => (
-                                        <div key={i} className={`rounded-2xl px-4 py-3 flex items-center gap-3 ${a.diff < 0 ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"}`}
-                                            dir={isAr ? "rtl" : "ltr"}>
-                                            <span className="text-xl shrink-0">{a.diff < 0 ? "🚨" : "⚠️"}</span>
-                                            <div className="flex-1 min-w-0">
-                                                <p className={`text-sm font-bold ${a.diff < 0 ? "text-red-700" : "text-amber-700"}`}>
-                                                    {a.label} — {a.vehicleName}
-                                                </p>
-                                                <p className={`text-xs mt-0.5 ${a.diff < 0 ? "text-red-500" : "text-amber-600"}`}>
-                                                    {a.diff < 0
-                                                        ? (isAr ? `منتهي منذ ${Math.abs(a.diff)} يوم` : `Expired ${Math.abs(a.diff)}d ago`)
-                                                        : a.diff === 0
-                                                            ? (isAr ? "ينتهي اليوم!" : "Expires today!")
-                                                            : (isAr ? `ينتهي خلال ${a.diff} يوم` : `Expires in ${a.diff}d`)
-                                                    }
-                                                </p>
-                                            </div>
-                                            <p className="text-xs text-gray-400 shrink-0">{a.dateStr}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
 
                             {/* Add button */}
                             <button
@@ -977,6 +936,32 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
                                     ))}
                                 </div>
                             </section>
+
+                            {/* Expiry alerts */}
+                            {expiryAlerts.length > 0 && (
+                                <div className="space-y-2">
+                                    {expiryAlerts.map((a, i) => (
+                                        <div key={i} className={`rounded-2xl px-4 py-3 flex items-center gap-3 ${a.diff < 0 ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"}`}
+                                            dir={isAr ? "rtl" : "ltr"}>
+                                            <span className="text-xl shrink-0">{a.diff < 0 ? "🚨" : "⚠️"}</span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className={`text-sm font-bold ${a.diff < 0 ? "text-red-700" : "text-amber-700"}`}>
+                                                    {a.label} — {a.vehicleName}
+                                                </p>
+                                                <p className={`text-xs mt-0.5 ${a.diff < 0 ? "text-red-500" : "text-amber-600"}`}>
+                                                    {a.diff < 0
+                                                        ? (isAr ? `منتهي منذ ${Math.abs(a.diff)} يوم` : `Expired ${Math.abs(a.diff)}d ago`)
+                                                        : a.diff === 0
+                                                            ? (isAr ? "ينتهي اليوم!" : "Expires today!")
+                                                            : (isAr ? `ينتهي خلال ${a.diff} يوم` : `Expires in ${a.diff}d`)
+                                                    }
+                                                </p>
+                                            </div>
+                                            <p className="text-xs text-gray-400 shrink-0">{a.dateStr}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             {/* Upcoming Reminders */}
                             <section>

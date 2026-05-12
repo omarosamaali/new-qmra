@@ -28,13 +28,25 @@ const PlusIcon = () => (
     </svg>
 );
 
+const EditIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+    </svg>
+);
+
+const TrashIcon = () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+    </svg>
+);
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const TODAY = new Date("2026-04-06");
-
 const warrantyStatus = (expiryDate) => {
+    if (!expiryDate) return "active";
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     const expiry = new Date(expiryDate);
-    const diffDays = Math.floor((expiry - TODAY) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor((expiry - today) / (1000 * 60 * 60 * 24));
     if (diffDays < 0)  return "expired";
     if (diffDays < 90) return "soon";
     return "active";
@@ -46,10 +58,10 @@ const statusColors = {
     active:  { dot: "bg-green-400", badge: "bg-green-50 text-green-600" },
 };
 
-const formatExpiry = (dateStr) =>
-    new Date(dateStr).toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" });
-
-// ─── Add Warranty Modal ───────────────────────────────────────────────────────
+const formatExpiry = (dateStr) => {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleDateString("ar-SA-u-nu-latn", { day: "numeric", month: "short", year: "numeric" });
+};
 
 const WARRANTY_TYPES = [
     { ar: "ضمان المصنع الشامل",        en: "Comprehensive Warranty",      icon: "🛡️" },
@@ -62,30 +74,20 @@ const WARRANTY_TYPES = [
     { ar: "أخرى",                      en: "Other",                       icon: "📋" },
 ];
 
-const WARRANTY_RECURRENCE = [
-    { value: "once",    ar: "مرة واحدة",     en: "Once" },
-    { value: "1month",  ar: "كل شهر",         en: "Every month" },
-    { value: "2months", ar: "كل شهرين",       en: "Every 2 months" },
-    { value: "3months", ar: "كل 3 أشهر",     en: "Every 3 months" },
-    { value: "6months", ar: "كل 6 أشهر",     en: "Every 6 months" },
-    { value: "1year",   ar: "كل سنة",         en: "Every year" },
-    { value: "1000km",  ar: "كل 1,000 كم",   en: "Every 1,000 km" },
-    { value: "2000km",  ar: "كل 2,000 كم",   en: "Every 2,000 km" },
-    { value: "5000km",  ar: "كل 5,000 كم",   en: "Every 5,000 km" },
-    { value: "10000km", ar: "كل 10,000 كم",  en: "Every 10,000 km" },
-    { value: "20000km", ar: "كل 20,000 كم",  en: "Every 20,000 km" },
-];
+const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400";
+
+// ─── Add Warranty Modal ───────────────────────────────────────────────────────
 
 const AddWarrantyModal = ({ onClose, onAdd, t, isAr }) => {
-    const [titleAr,    setTitleAr]    = useState("");
-    const [titleEn,    setTitleEn]    = useState("");
-    const [icon,       setIcon]       = useState("🛡️");
-    const [recurrence, setRecurrence] = useState("");
+    const [titleAr, setTitleAr] = useState("");
+    const [titleEn, setTitleEn] = useState("");
+    const [icon,    setIcon]    = useState("🛡️");
 
-    const customTitleRef = useRef(null);
-    const providerRef    = useRef(null);
-    const costRef        = useRef(null);
-    const notesRef       = useRef(null);
+    const customTitleRef  = useRef(null);
+    const providerRef     = useRef(null);
+    const notesRef        = useRef(null);
+    const expiryDateRef   = useRef(null);
+    const invoiceRef      = useRef(null);
 
     const isOther = titleAr === "أخرى";
 
@@ -102,22 +104,20 @@ const AddWarrantyModal = ({ onClose, onAdd, t, isAr }) => {
         const finalTitleAr = isOther ? customTitle : titleAr;
         const finalTitleEn = isOther ? customTitle : titleEn;
         onAdd({
-            titleAr:    finalTitleAr,
-            titleEn:    finalTitleEn,
+            titleAr:     finalTitleAr,
+            titleEn:     finalTitleEn,
             icon,
-            recurrence,
-            provider:   providerRef.current?.value?.trim() || "",
-            cost:       costRef.current?.value?.trim()     || "",
-            notes:      notesRef.current?.value?.trim()    || "",
+            provider:    providerRef.current?.value?.trim()   || "",
+            notes:       notesRef.current?.value?.trim()      || "",
+            expiryDate:  expiryDateRef.current?.value         || "",
+            invoiceNo:   invoiceRef.current?.value?.trim()    || "",
         });
     };
-
-    const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400";
 
     return (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-            <div className="relative w-full max-w-sm bg-white rounded-t-3xl px-4 pt-5 pb-10 safe-bottom space-y-4">
+            <div className="relative w-full max-w-sm bg-white rounded-t-3xl px-4 pt-5 pb-10 safe-bottom space-y-4 overflow-y-auto max-h-[90vh] no-scrollbar">
                 <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-2" />
                 <h2 className="font-bold text-gray-900 text-lg">{t("إضافة ضمان", "Add Warranty")}</h2>
 
@@ -152,33 +152,30 @@ const AddWarrantyModal = ({ onClose, onAdd, t, isAr }) => {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                            {t("التكرار", "Recurrence")}
+                            {t("تاريخ انتهاء الضمان", "Warranty Expiry Date")}
                         </label>
-                        <select value={recurrence} onChange={(e) => setRecurrence(e.target.value)} className={inputClass}>
-                            <option value="">{t("اختر التكرار", "Select recurrence")}</option>
-                            {WARRANTY_RECURRENCE.map(o => (
-                                <option key={o.value} value={o.value}>{isAr ? o.ar : o.en}</option>
-                            ))}
-                        </select>
+                        <input ref={expiryDateRef} type="date" defaultValue="" className={inputClass} />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             {t("الجهة", "Provider")}
                         </label>
-                        <input ref={providerRef} type="text" defaultValue="" placeholder={t("مثال: Toyota Abu Dhabi", "e.g. Toyota Abu Dhabi")} className={inputClass} />
+                        <input ref={providerRef} type="text" defaultValue="" placeholder={t("مثال: Toyota", "e.g. Toyota")} className={inputClass} />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">التكلفة</label>
-                        <input ref={costRef} type="text" defaultValue="" placeholder="ae 1000" className={inputClass} />
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            {t("رقم الفاتورة", "Invoice Number")}
+                        </label>
+                        <input ref={invoiceRef} type="text" defaultValue="" placeholder={t("مثال: INV-12345", "e.g. INV-12345")} className={inputClass} />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             {t("ملاحظات", "Notes")}
                         </label>
-                        <input ref={notesRef} type="text" defaultValue="" placeholder="..." className={inputClass} />
+                        <textarea ref={notesRef} defaultValue="" placeholder="..." rows={2} className={`${inputClass} resize-none`} />
                     </div>
 
                     <button
@@ -193,9 +190,86 @@ const AddWarrantyModal = ({ onClose, onAdd, t, isAr }) => {
     );
 };
 
+// ─── Edit Warranty Modal ──────────────────────────────────────────────────────
+
+const EditWarrantyModal = ({ warranty, onClose, onSave, t, isAr }) => {
+    const providerRef   = useRef(null);
+    const notesRef      = useRef(null);
+    const expiryRef     = useRef(null);
+    const invoiceRef    = useRef(null);
+    const [saving, setSaving] = useState(false);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setSaving(true);
+        const q = new URLSearchParams();
+        const provider   = providerRef.current?.value?.trim()  || "";
+        const notes      = notesRef.current?.value?.trim()     || "";
+        const expiryDate = expiryRef.current?.value            || "";
+        const invoiceNo  = invoiceRef.current?.value?.trim()   || "";
+        if (provider)   q.set("provider",    provider);
+        if (notes)      q.set("notes",       notes);
+        if (expiryDate) q.set("expiry_date", expiryDate);
+        if (invoiceNo)  q.set("notes",       (notes ? notes + "\nفاتورة: " : "فاتورة: ") + invoiceNo);
+        router.put(`/warranty/${warranty.id}?${q.toString()}`, {}, {
+            preserveScroll: true,
+            onSuccess: () => { setSaving(false); onClose(); },
+            onError:   () => setSaving(false),
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+            <div className="relative w-full max-w-sm bg-white rounded-t-3xl px-4 pt-5 pb-10 safe-bottom space-y-4">
+                <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-2" />
+                <h2 className="font-bold text-gray-900 text-lg">{t("تعديل الضمان", "Edit Warranty")}</h2>
+                <p className="text-sm text-gray-500 flex items-center gap-2">
+                    <span>{warranty.icon}</span>
+                    <span>{isAr ? warranty.titleAr : warranty.titleEn}</span>
+                </p>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            {t("تاريخ انتهاء الضمان", "Warranty Expiry Date")}
+                        </label>
+                        <input ref={expiryRef} type="date" defaultValue={warranty.expiryDate ?? ""} className={inputClass} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            {t("الجهة", "Provider")}
+                        </label>
+                        <input ref={providerRef} type="text" defaultValue={warranty.provider ?? ""} placeholder={t("مثال: Toyota", "e.g. Toyota")} className={inputClass} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            {t("رقم الفاتورة", "Invoice Number")}
+                        </label>
+                        <input ref={invoiceRef} type="text" defaultValue="" placeholder="INV-12345" className={inputClass} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            {t("ملاحظات", "Notes")}
+                        </label>
+                        <textarea ref={notesRef} defaultValue={warranty.notes ?? ""} rows={2} className={`${inputClass} resize-none`} />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="w-full bg-[#800000] text-white rounded-xl py-3.5 font-semibold text-sm active:opacity-90 disabled:opacity-60"
+                    >
+                        {saving ? t("جاري الحفظ...", "Saving...") : t("حفظ التعديلات", "Save Changes")}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 // ─── Warranty Row ─────────────────────────────────────────────────────────────
 
-const WarrantyRow = ({ warranty, isAr }) => {
+const WarrantyRow = ({ warranty, isAr, onEdit, onDelete }) => {
     const status = warrantyStatus(warranty.expiryDate);
     const colors = statusColors[status];
     const statusLabel = { expired: isAr ? "منتهي" : "Expired", soon: isAr ? "قريباً" : "Expiring Soon", active: isAr ? "ساري" : "Active" };
@@ -215,20 +289,36 @@ const WarrantyRow = ({ warranty, isAr }) => {
                     </span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-gray-400">{formatExpiry(warranty.expiryDate)}</span>
+                    {warranty.expiryDate && (
+                        <span className="text-xs text-gray-400">{formatExpiry(warranty.expiryDate)}</span>
+                    )}
                     {warranty.provider && (
                         <span className="text-xs text-gray-300">&bull; {warranty.provider}</span>
                     )}
                 </div>
             </div>
-            <div className={`w-2 h-2 rounded-full shrink-0 ${colors.dot}`} />
+            <div className="flex items-center gap-1 shrink-0">
+                <button
+                    onClick={() => onEdit(warranty)}
+                    className="w-7 h-7 flex items-center justify-center text-gray-400 active:text-[#800000] transition-colors"
+                >
+                    <EditIcon />
+                </button>
+                <button
+                    onClick={() => onDelete(warranty.id)}
+                    className="w-7 h-7 flex items-center justify-center text-gray-300 active:text-red-500 transition-colors"
+                >
+                    <TrashIcon />
+                </button>
+                <div className={`w-2 h-2 rounded-full shrink-0 ${colors.dot}`} />
+            </div>
         </div>
     );
 };
 
 // ─── Vehicle Section ──────────────────────────────────────────────────────────
 
-const VehicleSection = ({ vehicle, vehicleWarranties, onAdd, isAr, t }) => {
+const VehicleSection = ({ vehicle, vehicleWarranties, onAdd, onEdit, onDelete, isAr, t }) => {
     const VIcon = vehicle.type === "suv" ? SuvIcon : CarIcon;
 
     return (
@@ -236,9 +326,9 @@ const VehicleSection = ({ vehicle, vehicleWarranties, onAdd, isAr, t }) => {
             <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b border-gray-50">
                 <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: vehicle.color + "20" }}
+                    style={{ backgroundColor: (vehicle.color || "#666") + "20" }}
                 >
-                    <VIcon color={vehicle.color} className="w-6 h-6" />
+                    <VIcon color={vehicle.color || "#666"} className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="font-bold text-gray-900 text-sm">
@@ -261,7 +351,7 @@ const VehicleSection = ({ vehicle, vehicleWarranties, onAdd, isAr, t }) => {
                     </p>
                 ) : (
                     vehicleWarranties.map((w) => (
-                        <WarrantyRow key={w.id} warranty={w} isAr={isAr} />
+                        <WarrantyRow key={w.id} warranty={w} isAr={isAr} onEdit={onEdit} onDelete={onDelete} />
                     ))
                 )}
             </div>
@@ -276,16 +366,23 @@ export default function Warranty({ vehicles = [], warranties = [], defaultVehicl
     const [modalVehicleId, setModalVehicleId] = useState(
         defaultVehicleId ? Number(defaultVehicleId) : null
     );
+    const [editingWarranty, setEditingWarranty] = useState(null);
 
     const handleAdd = (form) => {
         const q = new URLSearchParams();
         q.set("vehicle_id", String(modalVehicleId));
-        q.set("titleAr", form.titleAr);
-        q.set("titleEn", form.titleEn);
-        q.set("icon", form.icon);
-        if (form.provider) q.set("provider", form.provider);
-        if (form.notes) q.set("notes", form.notes);
+        q.set("titleAr",    form.titleAr);
+        q.set("titleEn",    form.titleEn);
+        q.set("icon",       form.icon);
+        if (form.provider)   q.set("provider",    form.provider);
+        if (form.notes)      q.set("notes",       form.notes);
+        if (form.expiryDate) q.set("expiry_date", form.expiryDate);
         router.post(`/warranty?${q.toString()}`, {}, { onSuccess: () => setModalVehicleId(null) });
+    };
+
+    const handleDelete = (id) => {
+        if (!confirm("تأكيد حذف الضمان؟")) return;
+        router.delete(`/warranty/${id}`, { preserveScroll: true });
     };
 
     return (
@@ -317,6 +414,8 @@ export default function Warranty({ vehicles = [], warranties = [], defaultVehicl
                                         vehicle={vehicle}
                                         vehicleWarranties={warranties.filter((w) => w.vehicleId === vehicle.id)}
                                         onAdd={(vid) => setModalVehicleId(vid)}
+                                        onEdit={(w) => setEditingWarranty(w)}
+                                        onDelete={handleDelete}
                                         isAr={isAr}
                                         t={t}
                                     />
@@ -332,6 +431,16 @@ export default function Warranty({ vehicles = [], warranties = [], defaultVehicl
                     vehicleId={modalVehicleId}
                     onClose={() => setModalVehicleId(null)}
                     onAdd={handleAdd}
+                    t={t}
+                    isAr={isAr}
+                />
+            )}
+
+            {editingWarranty && (
+                <EditWarrantyModal
+                    warranty={editingWarranty}
+                    onClose={() => setEditingWarranty(null)}
+                    onSave={() => setEditingWarranty(null)}
                     t={t}
                     isAr={isAr}
                 />
