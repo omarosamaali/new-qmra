@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Head, router } from "@inertiajs/react";
 
 const BackIcon = () => (
@@ -45,25 +45,144 @@ const buildQS = (obj) => {
     return p.toString();
 };
 
-const scheduleNoteReminder = (note) => {
-    if (!note.reminderDate || !note.reminderTime) return;
+const LS_KEY = "qmra_note_reminders";
+
+const saveReminderToStorage = (key, title, body, date, time) => {
+    try {
+        const stored = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+        stored[key] = { title, body, date, time };
+        localStorage.setItem(LS_KEY, JSON.stringify(stored));
+    } catch {}
+};
+
+const removeReminderFromStorage = (key) => {
+    try {
+        const stored = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+        delete stored[key];
+        localStorage.setItem(LS_KEY, JSON.stringify(stored));
+    } catch {}
+};
+
+if (!window._qNoteAlarms) window._qNoteAlarms = {};
+
+const playAlertSound = () => {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [0, 200, 400].forEach((offset, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = i === 1 ? 880 : 660;
+            osc.type = "sine";
+            gain.gain.setValueAtTime(0.5, ctx.currentTime + offset / 1000);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset / 1000 + 0.35);
+            osc.start(ctx.currentTime + offset / 1000);
+            osc.stop(ctx.currentTime + offset / 1000 + 0.35);
+        });
+    } catch {}
+};
+
+const showReminderPopup = (title, body) => {
+    playAlertSound();
+
+    const existing = document.getElementById("_qmra_reminder_popup");
+    if (existing) existing.remove();
+
+    const popup = document.createElement("div");
+    popup.id = "_qmra_reminder_popup";
+    popup.setAttribute("dir", "rtl");
+    popup.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6); z-index: 99999;
+        display: flex; align-items: center; justify-content: center;
+        font-family: Cairo, sans-serif;
+    `;
+
+    popup.innerHTML = `
+        <div style="
+            background: #fff; border-radius: 20px; padding: 28px 24px;
+            max-width: 320px; width: 90%; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        ">
+            <div style="font-size: 48px; margin-bottom: 12px;">⏰</div>
+            <div style="font-size: 18px; font-weight: 800; color: #1a1a1a; margin-bottom: 8px; line-height: 1.4;">
+                ${title || "تذكير"}
+            </div>
+            ${body ? `<div style="font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.6;">${body}</div>` : '<div style="margin-bottom:20px"></div>'}
+            <button id="_qmra_reminder_close" style="
+                background: #800000; color: #fff; border: none;
+                border-radius: 14px; padding: 14px 40px;
+                font-size: 15px; font-weight: 700; cursor: pointer;
+                font-family: Cairo, sans-serif; width: 100%;
+            ">حسناً</button>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    const close = () => popup.remove();
+    document.getElementById("_qmra_reminder_close").addEventListener("click", close);
+    popup.addEventListener("click", (e) => { if (e.target === popup) close(); });
+};
+
+const armReminder = (key, title, body, date, time) => {
+    if (!date || !time) return;
+
+    if (window._qNoteAlarms[key]) {
+        clearTimeout(window._qNoteAlarms[key]);
+        delete window._qNoteAlarms[key];
+    }
+
+    const fireAt = new Date(`${date}T${time}`);
+    const delay  = fireAt.getTime() - Date.now();
+    if (delay <= 0) { removeReminderFromStorage(key); return; }
+
+    window._qNoteAlarms[key] = setTimeout(() => {
+        showReminderPopup(title, body);
+        removeReminderFromStorage(key);
+        delete window._qNoteAlarms[key];
+    }, delay);
+};
+
+const scheduleNoteReminder = (key, title, body, date, time) => {
+    if (!date || !time) return;
     try {
         if (window.ReminderBridge?.scheduleReminder) {
-            window.ReminderBridge.scheduleReminder(
-                `note_${note.id}`, note.title || "تنبيه ملاحظة",
-                note.content?.slice(0, 80) || "", note.reminderDate, note.reminderTime, "/notes"
-            );
+            window.ReminderBridge.scheduleReminder(`note_${key}`, title, body, date, time, "/notes");
+            return;
+        }
+        if ("Notification" in window && Notification.permission === "granted") {
+            saveReminderToStorage(key, title, body, date, time);
+            armReminder(key, title, body, date, time);
         }
     } catch {}
 };
 
+const restoreRemindersFromStorage = () => {
+    try {
+        const stored = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+        Object.entries(stored).forEach(([key, r]) => armReminder(key, r.title, r.body, r.date, r.time));
+    } catch {}
+};
+
 export default function Notes({ notes = [] }) {
-    const [modal, setModal]       = useState(null); // null | "add" | "edit" | "view"
+    const [modal, setModal]       = useState(null);
     const [active, setActive]     = useState(null);
     const [colorIdx, setColorIdx] = useState(0);
     const [search, setSearch]     = useState("");
     const [confirmDel, setConfirmDel] = useState(null);
     const [saving, setSaving]     = useState(false);
+
+    useEffect(() => {
+        if (!("Notification" in window)) return;
+        if (Notification.permission === "granted") {
+            restoreRemindersFromStorage();
+        } else if (Notification.permission === "default") {
+            Notification.requestPermission().then(perm => {
+                if (perm === "granted") restoreRemindersFromStorage();
+            });
+        }
+    }, []);
 
     const titleRef        = useRef(null);
     const contentRef      = useRef(null);
@@ -85,14 +204,19 @@ export default function Notes({ notes = [] }) {
         const qs = buildQS(payload);
         if (modal === "add") {
             router.post(`/notes?${qs}`, {}, {
-                onSuccess: () => { setSaving(false); setModal(null); },
-                onError:   () => setSaving(false),
+                onSuccess: () => {
+                    setSaving(false); setModal(null);
+                    if (reminderDate && reminderTime) {
+                        scheduleNoteReminder(`new_${Date.now()}`, title, content.slice(0, 80), reminderDate, reminderTime);
+                    }
+                },
+                onError: () => setSaving(false),
             });
         } else {
             router.put(`/notes/${active.id}?${qs}`, {}, {
                 onSuccess: () => {
                     setSaving(false); setModal(null);
-                    scheduleNoteReminder({ ...active, ...payload, reminderDate: reminderDate || null, reminderTime: reminderTime || null });
+                    scheduleNoteReminder(active.id, title, content.slice(0, 80), reminderDate || null, reminderTime || null);
                 },
                 onError: () => setSaving(false),
             });
@@ -151,16 +275,13 @@ export default function Notes({ notes = [] }) {
 
                             <div className="grid grid-cols-2 gap-3">
                                 {filtered.map(note => {
-                                    const col = COLORS[note.colorIdx ?? 0];
                                     return (
                                         <button key={note.id} onClick={() => openView(note)}
-                                            className="text-right rounded-2xl p-3.5 shadow-sm active:scale-95 transition-transform"
-                                            style={{ background: col.bg, border: `1.5px solid ${col.border}20` }}>
-                                            <div className="flex items-start justify-between gap-1 mb-1.5">
+                                            className="text-right rounded-2xl p-3.5 shadow-sm active:scale-95 transition-transform bg-white border border-gray-100">
+                                            <div className="flex items-start gap-1 mb-1.5">
                                                 <p className="font-bold text-gray-800 text-sm leading-snug line-clamp-2 flex-1">
                                                     {note.title || "بدون عنوان"}
                                                 </p>
-                                                <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5" style={{ background: col.dot }} />
                                             </div>
                                             {note.content && (
                                                 <p className="text-xs text-gray-500 leading-relaxed line-clamp-3 mb-2">{note.content}</p>
@@ -238,14 +359,6 @@ export default function Notes({ notes = [] }) {
                         </div>
 
                         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 no-scrollbar">
-                            <div className="flex gap-2">
-                                {COLORS.map((c, i) => (
-                                    <button key={i} onClick={() => setColorIdx(i)}
-                                        className={`w-7 h-7 rounded-full transition-transform ${colorIdx === i ? "ring-2 ring-offset-1 ring-gray-400 scale-110" : ""}`}
-                                        style={{ background: c.dot }} />
-                                ))}
-                            </div>
-
                             <input ref={titleRef} type="text" defaultValue={active?.title ?? ""}
                                 placeholder="العنوان"
                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400" />

@@ -11,9 +11,10 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.jsx'])
         @inertiaHead
+        @if(request()->getHost() === 'app.qmra.ae')
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
         <script>
-            // Web push (browser)
+            // Web push (browser) — only on production domain
             window.OneSignalDeferred = window.OneSignalDeferred || [];
             OneSignalDeferred.push(async function(OneSignal) {
                 await OneSignal.init({ appId: "d931525f-d834-404e-ac9d-2637743cca16" });
@@ -21,6 +22,9 @@
                 OneSignal.login("{{ Auth::id() }}");
                 @endauth
             });
+        </script>
+        @endif
+        <script>
 
             // Native Android push (NativePHP APK) — bridge injected by MainActivity.kt
             @auth
