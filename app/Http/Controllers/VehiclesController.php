@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
+use App\Services\CloudSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -53,21 +54,22 @@ class VehiclesController extends Controller
             'km.min' => 'العداد لا يمكن أن يكون سالباً.',
         ]);
 
-        Vehicle::create([
+        $vehicle = Vehicle::create([
             'user_id'               => $userId,
             'name_ar'               => $request->name_ar      ?? $request->brand,
             'name_en'               => $request->name_en      ?? $request->brand,
             'brand'                 => $request->brand,
-            'type'                  => $request->type         ?? 'sedan',
             'plate_number'          => $request->plate_number,
             'km'                    => $request->km,
             'unit'                  => $request->unit         ?? 'km',
-            'color'                 => $request->color        ?? '#800000',
+            'color'                 => '#800000',
             'year'                  => $request->year,
             'image'                 => null,
             'registration_expiry'   => $request->registration_expiry ?: null,
             'insurance_expiry'      => $request->insurance_expiry    ?: null,
         ]);
+
+        CloudSync::pushVehicle($vehicle, 'post');
 
         return redirect('/');
     }
@@ -93,15 +95,18 @@ class VehiclesController extends Controller
             'insurance_expiry'      => $request->has('insuranceExpiry')    ? ($request->insuranceExpiry    ?: null) : $vehicle->insurance_expiry,
         ]);
 
+        CloudSync::pushVehicle($vehicle->fresh(), 'put');
+
         return back();
     }
 
     public function destroy(int $id)
     {
-        $userId = $this->userId();
-
+        $userId  = $this->userId();
         $vehicle = Vehicle::where('id', $id)->where('user_id', $userId)->firstOrFail();
+        $serverId = $vehicle->server_id;
         $vehicle->delete();
+        if ($serverId) CloudSync::deleteVehicle($serverId);
 
         return back();
     }

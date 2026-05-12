@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\CloudSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -95,6 +96,9 @@ class AuthController extends Controller
                 }
             }
 
+            // Pull user data from cloud into local SQLite (restores data after reinstall)
+            try { CloudSync::pull(); } catch (\Exception $e) { Log::warning('CloudSync pull after register: ' . $e->getMessage()); }
+
             return redirect('/');
         }
 
@@ -180,6 +184,12 @@ class AuthController extends Controller
                     // Profile fetch failed — subscription remains null, user goes to /subscriptions
                 }
             }
+
+            // Pull user data from cloud into local SQLite (restores data after reinstall)
+            try { CloudSync::pull(); } catch (\Exception $e) { Log::warning('CloudSync pull after login: ' . $e->getMessage()); }
+
+            // Push any offline-created records that have no server_id yet
+            try { CloudSync::flushQueue(); } catch (\Exception $e) { }
 
             return redirect()->intended('/');
         }

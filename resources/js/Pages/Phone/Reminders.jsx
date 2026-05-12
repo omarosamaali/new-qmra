@@ -47,6 +47,17 @@ const hasReminderBridge = () =>
     typeof window.ReminderBridge.scheduleReminder === "function" &&
     typeof window.ReminderBridge.cancelReminder === "function";
 
+const hasBrowserNotifications = () =>
+    typeof window !== "undefined" && "Notification" in window;
+
+export const requestNotificationPermission = async () => {
+    if (!hasBrowserNotifications()) return false;
+    if (Notification.permission === "granted") return true;
+    if (Notification.permission === "denied") return false;
+    const result = await Notification.requestPermission();
+    return result === "granted";
+};
+
 const parseReminderDateTime = (dueDate, dueTime) => {
     if (!dueDate) return null;
     const normalizedTime = dueTime && dueTime.length >= 5 ? dueTime.slice(0, 5) : "09:00";
@@ -54,45 +65,71 @@ const parseReminderDateTime = (dueDate, dueTime) => {
     return Number.isNaN(value.getTime()) ? null : value;
 };
 
+// Store browser setTimeout IDs so we can cancel them
+if (typeof window !== "undefined") window._qBrowserAlarms = window._qBrowserAlarms || {};
+
 const scheduleReminderNative = (reminder) => {
-    if (!hasReminderBridge()) return;
     if (reminder.completed || !reminder.dueDate) {
-        window.ReminderBridge.cancelReminder(String(reminder.id));
+        cancelReminderNative(reminder.id);
         return;
     }
 
     const scheduledAt = parseReminderDateTime(reminder.dueDate, reminder.dueTime);
     if (!scheduledAt || scheduledAt.getTime() <= Date.now()) {
-        window.ReminderBridge.cancelReminder(String(reminder.id));
+        cancelReminderNative(reminder.id);
         return;
     }
 
     const title = reminder.titleAr || "تنبيه قمرة";
-    const body = reminder.notes?.trim() || "لديك تذكير مستحق الآن";
-    const route = "/reminders";
-    window.ReminderBridge.scheduleReminder(
-        String(reminder.id),
-        title,
-        body,
-        reminder.dueDate,
-        reminder.dueTime || "",
-        route
-    );
+    const body  = reminder.notes?.trim() || "لديك تذكير مستحق الآن";
+
+    // Native Android bridge (APK)
+    if (hasReminderBridge()) {
+        window.ReminderBridge.scheduleReminder(
+            String(reminder.id), title, body,
+            reminder.dueDate, reminder.dueTime || "", "/reminders"
+        );
+        return;
+    }
+
+    // Browser fallback (website / testing)
+    if (hasBrowserNotifications()) {
+        if (typeof window._qBrowserAlarms[reminder.id] !== "undefined") {
+            clearTimeout(window._qBrowserAlarms[reminder.id]);
+        }
+        const delay = scheduledAt.getTime() - Date.now();
+        window._qBrowserAlarms[reminder.id] = setTimeout(async () => {
+            if (Notification.permission !== "granted") {
+                await requestNotificationPermission();
+            }
+            if (Notification.permission === "granted") {
+                new Notification(title, {
+                    body,
+                    icon: "/favicon.ico",
+                    tag:  String(reminder.id),
+                });
+            }
+        }, delay);
+    }
 };
 
 const cancelReminderNative = (id) => {
-    if (!hasReminderBridge()) return;
-    window.ReminderBridge.cancelReminder(String(id));
+    if (hasReminderBridge()) {
+        window.ReminderBridge.cancelReminder(String(id));
+    }
+    if (typeof window !== "undefined" && window._qBrowserAlarms?.[id]) {
+        clearTimeout(window._qBrowserAlarms[id]);
+        delete window._qBrowserAlarms[id];
+    }
 };
 
 const syncReminderSchedules = (reminders) => {
-    if (!hasReminderBridge()) return;
     reminders.forEach((reminder) => {
         if (reminder.completed || !reminder.dueDate) {
             cancelReminderNative(reminder.id);
-            return;
+        } else {
+            scheduleReminderNative(reminder);
         }
-        scheduleReminderNative(reminder);
     });
 };
 
@@ -329,6 +366,8 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
     const doneCount     = reminders.filter(isDone).length;
 
     useEffect(() => {
+        // Request browser notification permission on first visit
+        requestNotificationPermission();
         syncReminderSchedules(reminders);
     }, [reminders]);
 

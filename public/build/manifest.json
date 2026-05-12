@@ -3,20 +3,20 @@
     "file": "assets/BrandsData-DOi_JurZ.js",
     "name": "BrandsData"
   },
-  "_language-BCSqmWIe.js": {
-    "file": "assets/language-BCSqmWIe.js",
+  "_language-z125W-0y.js": {
+    "file": "assets/language-z125W-0y.js",
     "name": "language",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-BOijk02O.css",
+    "file": "assets/app-C1Hqhk1m.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/Pages/Auth/ForgotPassword.jsx": {
-    "file": "assets/ForgotPassword-CLUNJnUw.js",
+    "file": "assets/ForgotPassword-B3pHJnSA.js",
     "name": "ForgotPassword",
     "src": "resources/js/Pages/Auth/ForgotPassword.jsx",
     "isDynamicEntry": true,
@@ -25,7 +25,7 @@
     ]
   },
   "resources/js/Pages/Auth/Login.jsx": {
-    "file": "assets/Login-BocL3zs9.js",
+    "file": "assets/Login-DBRkNT-g.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.jsx",
     "isDynamicEntry": true,
@@ -34,7 +34,7 @@
     ]
   },
   "resources/js/Pages/Auth/Register.jsx": {
-    "file": "assets/Register-C95j5BFh.js",
+    "file": "assets/Register-X7AT4Kp7.js",
     "name": "Register",
     "src": "resources/js/Pages/Auth/Register.jsx",
     "isDynamicEntry": true,
@@ -43,18 +43,18 @@
     ]
   },
   "resources/js/Pages/Home.jsx": {
-    "file": "assets/Home-D885Tofp.js",
+    "file": "assets/Home-B092LaJl.js",
     "name": "Home",
     "src": "resources/js/Pages/Home.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_language-BCSqmWIe.js",
+      "_language-z125W-0y.js",
       "_BrandsData-DOi_JurZ.js"
     ]
   },
   "resources/js/Pages/Phone/About.jsx": {
-    "file": "assets/About-CHz5uYZO.js",
+    "file": "assets/About-CjUVklUh.js",
     "name": "About",
     "src": "resources/js/Pages/Phone/About.jsx",
     "isDynamicEntry": true,
@@ -63,17 +63,17 @@
     ]
   },
   "resources/js/Pages/Phone/Add.jsx": {
-    "file": "assets/Add-Dp0ajRMW.js",
+    "file": "assets/Add-CJq3ldqS.js",
     "name": "Add",
     "src": "resources/js/Pages/Phone/Add.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_language-BCSqmWIe.js"
+      "_language-z125W-0y.js"
     ]
   },
   "resources/js/Pages/Phone/AddService.jsx": {
-    "file": "assets/AddService-DU0Eh7Jk.js",
+    "file": "assets/AddService-BLQYh_M8.js",
     "name": "AddService",
     "src": "resources/js/Pages/Phone/AddService.jsx",
     "isDynamicEntry": true,
@@ -82,7 +82,7 @@
     ]
   },
   "resources/js/Pages/Phone/AddVehicle.jsx": {
-    "file": "assets/AddVehicle-_a6zThNM.js",
+    "file": "assets/AddVehicle-DoGheDEb.js",
     "name": "AddVehicle",
     "src": "resources/js/Pages/Phone/AddVehicle.jsx",
     "isDynamicEntry": true,
@@ -92,7 +92,7 @@
     ]
   },
   "resources/js/Pages/Phone/Contact.jsx": {
-    "file": "assets/Contact-R-L3lzUX.js",
+    "file": "assets/Contact-C4mx8upy.js",
     "name": "Contact",
     "src": "resources/js/Pages/Phone/Contact.jsx",
     "isDynamicEntry": true,
@@ -101,7 +101,7 @@
     ]
   },
   "resources/js/Pages/Phone/Notes.jsx": {
-    "file": "assets/Notes-C27oWtq3.js",
+    "file": "assets/Notes-DO6DOfZF.js",
     "name": "Notes",
     "src": "resources/js/Pages/Phone/Notes.jsx",
     "isDynamicEntry": true,
@@ -110,7 +110,7 @@
     ]
   },
   "resources/js/Pages/Phone/Profile.jsx": {
-    "file": "assets/Profile-BmMSf10v.js",
+    "file": "assets/Profile-DGUGKA0c.js",
     "name": "Profile",
     "src": "resources/js/Pages/Phone/Profile.jsx",
     "isDynamicEntry": true,
@@ -119,7 +119,7 @@
     ]
   },
   "resources/js/Pages/Phone/Records.jsx": {
-    "file": "assets/Records-CgMhCD5x.js",
+    "file": "assets/Records-DPZwIogj.js",
     "name": "Records",
     "src": "resources/js/Pages/Phone/Records.jsx",
     "isDynamicEntry": true,
@@ -128,7 +128,7 @@
     ]
   },
   "resources/js/Pages/Phone/Reminders.jsx": {
-    "file": "assets/Reminders-C7VNIPBc.js",
+    "file": "assets/Reminders-Dc3U7fIm.js",
     "name": "Reminders",
     "src": "resources/js/Pages/Phone/Reminders.jsx",
     "isDynamicEntry": true,
@@ -137,7 +137,7 @@
     ]
   },
   "resources/js/Pages/Phone/Services.jsx": {
-    "file": "assets/Services-BLtKn8Cd.js",
+    "file": "assets/Services-B39mzL3M.js",
     "name": "Services",
     "src": "resources/js/Pages/Phone/Services.jsx",
     "isDynamicEntry": true,
@@ -146,7 +146,7 @@
     ]
   },
   "resources/js/Pages/Phone/Subscriptions.jsx": {
-    "file": "assets/Subscriptions-CYlUYoad.js",
+    "file": "assets/Subscriptions-CJb2h7Ps.js",
     "name": "Subscriptions",
     "src": "resources/js/Pages/Phone/Subscriptions.jsx",
     "isDynamicEntry": true,
@@ -155,7 +155,7 @@
     ]
   },
   "resources/js/Pages/Phone/Terms.jsx": {
-    "file": "assets/Terms-KJ6tV14U.js",
+    "file": "assets/Terms-DdKg4i_2.js",
     "name": "Terms",
     "src": "resources/js/Pages/Phone/Terms.jsx",
     "isDynamicEntry": true,
@@ -164,7 +164,7 @@
     ]
   },
   "resources/js/Pages/Phone/Vehicles.jsx": {
-    "file": "assets/Vehicles-kxL9YXlo.js",
+    "file": "assets/Vehicles-DkmjHL4K.js",
     "name": "Vehicles",
     "src": "resources/js/Pages/Phone/Vehicles.jsx",
     "isDynamicEntry": true,
@@ -174,17 +174,17 @@
     ]
   },
   "resources/js/Pages/Phone/Warranty.jsx": {
-    "file": "assets/Warranty-D9JYroYW.js",
+    "file": "assets/Warranty-DAxR07LJ.js",
     "name": "Warranty",
     "src": "resources/js/Pages/Phone/Warranty.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_language-BCSqmWIe.js"
+      "_language-z125W-0y.js"
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-CYLChNbM.js",
+    "file": "assets/app-C5SE80gh.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -209,7 +209,7 @@
       "resources/js/Pages/Phone/Warranty.jsx"
     ],
     "css": [
-      "assets/app-BOijk02O.css"
+      "assets/app-C1Hqhk1m.css"
     ]
   }
 }

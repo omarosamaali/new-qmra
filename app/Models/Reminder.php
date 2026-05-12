@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Reminder extends Model
 {
-    protected $fillable = ['user_id','vehicle_id','service_id','title_ar','notes','due_date','due_time','due_km','completed'];
+    protected $fillable = ['user_id','server_id','vehicle_id','service_id','title_ar','notes','due_date','due_time','due_km','completed'];
     protected $casts    = ['completed' => 'boolean', 'due_date' => 'date'];
 
     public function vehicle() { return $this->belongsTo(Vehicle::class); }

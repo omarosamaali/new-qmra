@@ -157,6 +157,11 @@ return [
 
         'permissions' => [
             'android.permission.CAMERA',
+            'android.permission.POST_NOTIFICATIONS',
+            'android.permission.SCHEDULE_EXACT_ALARM',
+            'android.permission.USE_EXACT_ALARM',
+            'android.permission.RECEIVE_BOOT_COMPLETED',
+            'android.permission.VIBRATE',
         ],
 
         'features' => [

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Vehicle extends Model
 {
-    protected $fillable = ['user_id','name_ar','name_en','brand','type','plate_number','km','color','year','image','is_linked','link_code','registration_expiry','insurance_expiry'];
+    protected $fillable = ['user_id','server_id','name_ar','name_en','brand','type','plate_number','km','unit','color','year','image','is_linked','link_code','registration_expiry','insurance_expiry'];
 
     protected $casts = ['is_linked' => 'boolean', 'registration_expiry' => 'date', 'insurance_expiry' => 'date'];
 

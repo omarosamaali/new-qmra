@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Note;
+use App\Services\CloudSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -37,7 +38,7 @@ class NotesController extends Controller
     public function store(Request $request)
     {
         $userId = $this->userId();
-        Note::create([
+        $note   = Note::create([
             'user_id'       => $userId,
             'title'         => $request->title        ?? '',
             'content'       => $request->content      ?: null,
@@ -45,6 +46,7 @@ class NotesController extends Controller
             'reminder_date' => $request->reminder_date ?: null,
             'reminder_time' => $request->reminder_time ?: null,
         ]);
+        CloudSync::pushNote($note, 'post');
         return back();
     }
 
@@ -59,13 +61,17 @@ class NotesController extends Controller
             'reminder_date' => $request->has('reminder_date') ? ($request->reminder_date ?: null)  : $note->reminder_date,
             'reminder_time' => $request->has('reminder_time') ? ($request->reminder_time ?: null)  : $note->reminder_time,
         ]);
+        CloudSync::pushNote($note->fresh(), 'put');
         return back();
     }
 
     public function destroy(int $id)
     {
-        $userId = $this->userId();
-        Note::where('id', $id)->where('user_id', $userId)->firstOrFail()->delete();
+        $userId   = $this->userId();
+        $note     = Note::where('id', $id)->where('user_id', $userId)->firstOrFail();
+        $serverId = $note->server_id;
+        $note->delete();
+        if ($serverId) CloudSync::deleteNote($serverId);
         return back();
     }
 }
