@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Head, router } from "@inertiajs/react";
 
 const BackIcon = () => (
@@ -22,10 +22,6 @@ const EditIcon = () => (
     </svg>
 );
 
-const SK = "qumra_notes";
-const load = () => { try { return JSON.parse(localStorage.getItem(SK)) ?? []; } catch { return []; } };
-const save = (v) => { try { localStorage.setItem(SK, JSON.stringify(v)); } catch {} };
-
 const COLORS = [
     { bg: "#fff9f0", border: "#f59e0b", dot: "#f59e0b" },
     { bg: "#f0fdf4", border: "#22c55e", dot: "#22c55e" },
@@ -36,64 +32,82 @@ const COLORS = [
 ];
 
 const formatDate = (iso) => {
+    if (!iso) return "";
     const d = new Date(iso);
     return d.toLocaleDateString("ar-SA-u-nu-latn", { year: "numeric", month: "short", day: "numeric" });
 };
 
-export default function Notes() {
-    const [notes, setNotes]       = useState(load);
-    const [modal, setModal]       = useState(null);
+const buildQS = (obj) => {
+    const p = new URLSearchParams();
+    Object.entries(obj).forEach(([k, v]) => { if (v !== null && v !== undefined && v !== "") p.set(k, String(v)); });
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
+    if (csrf) p.set("_token", csrf);
+    return p.toString();
+};
+
+const scheduleNoteReminder = (note) => {
+    if (!note.reminderDate || !note.reminderTime) return;
+    try {
+        if (window.ReminderBridge?.scheduleReminder) {
+            window.ReminderBridge.scheduleReminder(
+                `note_${note.id}`, note.title || "تنبيه ملاحظة",
+                note.content?.slice(0, 80) || "", note.reminderDate, note.reminderTime, "/notes"
+            );
+        }
+    } catch {}
+};
+
+export default function Notes({ notes = [] }) {
+    const [modal, setModal]       = useState(null); // null | "add" | "edit" | "view"
     const [active, setActive]     = useState(null);
     const [colorIdx, setColorIdx] = useState(0);
     const [search, setSearch]     = useState("");
     const [confirmDel, setConfirmDel] = useState(null);
+    const [saving, setSaving]     = useState(false);
 
-    const titleRef      = useRef(null);
-    const contentRef    = useRef(null);
+    const titleRef        = useRef(null);
+    const contentRef      = useRef(null);
     const reminderDateRef = useRef(null);
     const reminderTimeRef = useRef(null);
 
-    useEffect(() => { save(notes); }, [notes]);
-
-    const openAdd = () => {
-        setColorIdx(0); setActive(null); setModal("add");
-    };
-
-    const openEdit = (note) => {
-        setColorIdx(note.colorIdx ?? 0); setActive(note); setModal("edit");
-    };
-
-    const openView = (note) => {
-        setActive(note); setModal("view");
-    };
+    const openAdd  = () => { setColorIdx(0); setActive(null); setModal("add"); };
+    const openEdit = (note) => { setColorIdx(note.colorIdx ?? 0); setActive(note); setModal("edit"); };
+    const openView = (note) => { setActive(note); setModal("view"); };
 
     const saveNote = () => {
-        const t  = titleRef.current?.value?.trim()      || "";
-        const c  = contentRef.current?.value?.trim()    || "";
-        const rd = reminderDateRef.current?.value        || "";
-        const rt = reminderTimeRef.current?.value        || "";
-        if (!t && !c) return;
+        const title        = titleRef.current?.value?.trim()      || "";
+        const content      = contentRef.current?.value?.trim()    || "";
+        const reminderDate = reminderDateRef.current?.value        || "";
+        const reminderTime = reminderTimeRef.current?.value        || "";
+        if (!title && !content) return;
+        setSaving(true);
+        const payload = { title, content, color_idx: colorIdx, reminder_date: reminderDate || null, reminder_time: reminderTime || null };
+        const qs = buildQS(payload);
         if (modal === "add") {
-            const n = { id: Date.now(), title: t, content: c, colorIdx, createdAt: new Date().toISOString(), reminderDate: rd || null, reminderTime: rt || null };
-            setNotes(p => [n, ...p]);
+            router.post(`/notes?${qs}`, {}, {
+                onSuccess: () => { setSaving(false); setModal(null); },
+                onError:   () => setSaving(false),
+            });
         } else {
-            setNotes(p => p.map(n => n.id === active.id
-                ? { ...n, title: t, content: c, colorIdx, updatedAt: new Date().toISOString(), reminderDate: rd || null, reminderTime: rt || null }
-                : n
-            ));
+            router.put(`/notes/${active.id}?${qs}`, {}, {
+                onSuccess: () => {
+                    setSaving(false); setModal(null);
+                    scheduleNoteReminder({ ...active, ...payload, reminderDate: reminderDate || null, reminderTime: reminderTime || null });
+                },
+                onError: () => setSaving(false),
+            });
         }
-        setModal(null);
     };
 
     const deleteNote = (id) => {
-        setNotes(p => p.filter(n => n.id !== id));
+        router.delete(`/notes/${id}`, { preserveScroll: true });
         setConfirmDel(null);
         if (modal === "view") setModal(null);
     };
 
     const filtered = notes.filter(n =>
-        n.title.toLowerCase().includes(search.toLowerCase()) ||
-        n.content.toLowerCase().includes(search.toLowerCase())
+        (n.title || "").toLowerCase().includes(search.toLowerCase()) ||
+        (n.content || "").toLowerCase().includes(search.toLowerCase())
     );
 
     return (
@@ -102,12 +116,9 @@ export default function Notes() {
             <div className="min-h-screen bg-gray-100 flex justify-center" dir="rtl">
                 <div className="w-full max-w-sm min-h-screen flex flex-col bg-gray-100">
 
-                    {/* Header */}
                     <div className="bg-white flex items-center gap-3 sticky top-0 z-20 shadow-sm safe-header">
-                        <button
-                            onClick={() => router.get("/")}
-                            className="w-9 h-17 flex items-center justify-center bg-[#800000] text-white active:opacity-80 transition-opacity"
-                        >
+                        <button onClick={() => router.get("/")}
+                            className="w-9 h-17 flex items-center justify-center bg-[#800000] text-white active:opacity-80 transition-opacity">
                             <BackIcon />
                         </button>
                         <h1 className="font-bold text-gray-900 text-lg">المفكرة</h1>
@@ -117,19 +128,15 @@ export default function Notes() {
                     <div className="flex-1 overflow-y-auto no-scrollbar">
                         <div className="px-4 pt-4 pb-28 space-y-3">
 
-                            {/* Search */}
                             <div className="relative">
                                 <input
-                                    type="text"
-                                    value={search}
-                                    onChange={e => setSearch(e.target.value)}
+                                    type="text" value={search} onChange={e => setSearch(e.target.value)}
                                     placeholder="ابحث في ملاحظاتك..."
                                     className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400 pr-10"
                                 />
                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-base">🔍</span>
                             </div>
 
-                            {/* Empty state */}
                             {filtered.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-20 text-center">
                                     <div className="text-5xl mb-4">📝</div>
@@ -142,17 +149,13 @@ export default function Notes() {
                                 </div>
                             )}
 
-                            {/* Notes grid */}
                             <div className="grid grid-cols-2 gap-3">
                                 {filtered.map(note => {
                                     const col = COLORS[note.colorIdx ?? 0];
                                     return (
-                                        <button
-                                            key={note.id}
-                                            onClick={() => openView(note)}
+                                        <button key={note.id} onClick={() => openView(note)}
                                             className="text-right rounded-2xl p-3.5 shadow-sm active:scale-95 transition-transform"
-                                            style={{ background: col.bg, border: `1.5px solid ${col.border}20` }}
-                                        >
+                                            style={{ background: col.bg, border: `1.5px solid ${col.border}20` }}>
                                             <div className="flex items-start justify-between gap-1 mb-1.5">
                                                 <p className="font-bold text-gray-800 text-sm leading-snug line-clamp-2 flex-1">
                                                     {note.title || "بدون عنوان"}
@@ -160,9 +163,7 @@ export default function Notes() {
                                                 <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5" style={{ background: col.dot }} />
                                             </div>
                                             {note.content && (
-                                                <p className="text-xs text-gray-500 leading-relaxed line-clamp-3 mb-2">
-                                                    {note.content}
-                                                </p>
+                                                <p className="text-xs text-gray-500 leading-relaxed line-clamp-3 mb-2">{note.content}</p>
                                             )}
                                             <div className="flex items-center justify-between gap-1">
                                                 <p className="text-xs text-gray-400">{formatDate(note.updatedAt ?? note.createdAt)}</p>
@@ -175,12 +176,10 @@ export default function Notes() {
                         </div>
                     </div>
 
-                    {/* FAB */}
-                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex justify-center pointer-events-none" style={{ width: "100%", maxWidth: "384px" }}>
-                        <button
-                            onClick={openAdd}
-                            className="pointer-events-auto w-14 h-14 rounded-full bg-[#800000] text-white shadow-xl flex items-center justify-center active:opacity-80 transition-opacity"
-                        >
+                    <div className="fixed left-1/2 -translate-x-1/2 flex justify-center pointer-events-none"
+                        style={{ width: "100%", maxWidth: "384px", bottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}>
+                        <button onClick={openAdd}
+                            className="pointer-events-auto w-14 h-14 rounded-full bg-[#800000] text-white shadow-xl flex items-center justify-center active:opacity-80 transition-opacity">
                             <PlusIcon />
                         </button>
                     </div>
@@ -192,9 +191,7 @@ export default function Notes() {
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center" dir="rtl">
                     <div className="w-full max-w-sm bg-white rounded-t-3xl flex flex-col" style={{ maxHeight: "85vh" }}>
                         <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
-                            <h2 className="font-bold text-gray-900 text-base flex-1 ml-4">
-                                {active.title || "بدون عنوان"}
-                            </h2>
+                            <h2 className="font-bold text-gray-900 text-base flex-1 ml-4">{active.title || "بدون عنوان"}</h2>
                             <div className="flex items-center gap-2">
                                 <button onClick={() => openEdit(active)}
                                     className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 active:opacity-70">
@@ -205,13 +202,21 @@ export default function Notes() {
                                     <TrashIcon />
                                 </button>
                                 <button onClick={() => setModal(null)}
-                                    className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 font-bold active:opacity-70">
-                                    ✕
-                                </button>
+                                    className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 font-bold active:opacity-70">✕</button>
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto px-5 py-4 no-scrollbar">
                             <p className="text-xs text-gray-400 mb-3">{formatDate(active.updatedAt ?? active.createdAt)}</p>
+                            {(active.reminderDate || active.reminderTime) && (
+                                <div className="flex items-center gap-1.5 mb-3 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+                                    <span className="text-sm">⏰</span>
+                                    <span className="text-xs text-amber-700 font-medium">
+                                        {active.reminderDate}
+                                        {active.reminderDate && active.reminderTime && " — "}
+                                        {active.reminderTime}
+                                    </span>
+                                </div>
+                            )}
                             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
                                 {active.content || <span className="text-gray-300 italic">لا يوجد محتوى</span>}
                             </p>
@@ -229,76 +234,52 @@ export default function Notes() {
                                 {modal === "add" ? "ملاحظة جديدة" : "تعديل الملاحظة"}
                             </h2>
                             <button onClick={() => setModal(null)}
-                                className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 font-bold active:opacity-70">
-                                ✕
-                            </button>
+                                className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 font-bold active:opacity-70">✕</button>
                         </div>
 
                         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 no-scrollbar">
-                            {/* Color picker */}
                             <div className="flex gap-2">
                                 {COLORS.map((c, i) => (
                                     <button key={i} onClick={() => setColorIdx(i)}
                                         className={`w-7 h-7 rounded-full transition-transform ${colorIdx === i ? "ring-2 ring-offset-1 ring-gray-400 scale-110" : ""}`}
-                                        style={{ background: c.dot }}
-                                    />
+                                        style={{ background: c.dot }} />
                                 ))}
                             </div>
 
-                            <input
-                                ref={titleRef}
-                                type="text"
-                                defaultValue={active?.title ?? ""}
+                            <input ref={titleRef} type="text" defaultValue={active?.title ?? ""}
                                 placeholder="العنوان"
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400"
-                            />
-                            <textarea
-                                ref={contentRef}
-                                defaultValue={active?.content ?? ""}
-                                placeholder="اكتب ملاحظتك هنا..."
-                                rows={6}
-                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400 resize-none"
-                            />
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400" />
+                            <textarea ref={contentRef} defaultValue={active?.content ?? ""}
+                                placeholder="اكتب ملاحظتك هنا..." rows={6}
+                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400 resize-none" />
 
-                            {/* Reminder */}
                             <div className="border border-gray-200 rounded-xl p-3 space-y-2 bg-gray-50">
                                 <p className="text-xs font-semibold text-gray-500">⏰ تنبيه (اختياري)</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
                                         <label className="text-xs text-gray-400 block mb-1">التاريخ</label>
-                                        <input
-                                            ref={reminderDateRef}
-                                            type="date"
-                                            defaultValue={active?.reminderDate ?? ""}
-                                            className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#800000]"
-                                        />
+                                        <input ref={reminderDateRef} type="date" defaultValue={active?.reminderDate ?? ""}
+                                            className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#800000]" />
                                     </div>
                                     <div>
                                         <label className="text-xs text-gray-400 block mb-1">الوقت</label>
-                                        <input
-                                            ref={reminderTimeRef}
-                                            type="time"
-                                            defaultValue={active?.reminderTime ?? ""}
-                                            className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#800000]"
-                                        />
+                                        <input ref={reminderTimeRef} type="time" defaultValue={active?.reminderTime ?? ""}
+                                            className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#800000]" />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="px-5 pb-8 pt-3 border-t border-gray-100">
-                            <button
-                                onClick={saveNote}
-                                className="w-full py-3.5 rounded-2xl font-bold text-sm transition-all bg-[#800000] text-white active:opacity-80"
-                            >
-                                {modal === "add" ? "حفظ الملاحظة" : "حفظ التعديلات"}
+                            <button onClick={saveNote} disabled={saving}
+                                className="w-full py-3.5 rounded-2xl font-bold text-sm transition-all bg-[#800000] text-white active:opacity-80 disabled:opacity-60">
+                                {saving ? "جاري الحفظ..." : modal === "add" ? "حفظ الملاحظة" : "حفظ التعديلات"}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Delete confirm */}
             {confirmDel && (
                 <div className="fixed inset-0 z-60 bg-black/60 flex items-center justify-center px-6" dir="rtl">
                     <div className="bg-white rounded-3xl p-6 w-full max-w-xs text-center space-y-4">
@@ -307,13 +288,9 @@ export default function Notes() {
                         <p className="text-xs text-gray-400">لا يمكن التراجع عن هذا الإجراء.</p>
                         <div className="flex gap-3">
                             <button onClick={() => setConfirmDel(null)}
-                                className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-gray-600 active:opacity-80">
-                                إلغاء
-                            </button>
+                                className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-gray-600 active:opacity-80">إلغاء</button>
                             <button onClick={() => deleteNote(confirmDel)}
-                                className="flex-1 py-3 rounded-2xl bg-red-600 text-white text-sm font-bold active:opacity-80">
-                                حذف
-                            </button>
+                                className="flex-1 py-3 rounded-2xl bg-red-600 text-white text-sm font-bold active:opacity-80">حذف</button>
                         </div>
                     </div>
                 </div>

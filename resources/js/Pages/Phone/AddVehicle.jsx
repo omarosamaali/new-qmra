@@ -105,7 +105,7 @@ const StepInfo = ({ brand, model, setBrand, setModel, yearRef, plateRef }) => {
             </div>
             <div>
                 <label className={labelClass}>سنة الصنع <span className="text-[#800000]">*</span></label>
-                <input ref={yearRef} type="number" defaultValue="" placeholder="مثال: 2021" min="1990" max={new Date().getFullYear()} className={inputClass} />
+                <input ref={yearRef} type="number" defaultValue="" placeholder="مثال: 2021" maxLength={4} className={inputClass} />
             </div>
             <div>
                 <label className={labelClass}>رقم اللوحة <span className="text-[#800000]">*</span></label>
@@ -115,7 +115,7 @@ const StepInfo = ({ brand, model, setBrand, setModel, yearRef, plateRef }) => {
     );
 };
 
-const StepSettings = ({ color, setColor, unit, setUnit, kmRef, regExpiryRef, insExpiryRef, notesRef }) => (
+const StepSettings = ({ unit, setUnit, kmRef, regExpiryRef, insExpiryRef, notesRef }) => (
     <div className="space-y-4">
         <h2 className="font-bold text-gray-900 text-lg mb-2">إعدادات المركبة</h2>
 
@@ -160,17 +160,6 @@ const StepSettings = ({ color, setColor, unit, setUnit, kmRef, regExpiryRef, ins
             <input ref={insExpiryRef} type="date" defaultValue="" className={inputClass} />
         </div>
         <div>
-            <label className={labelClass}>اللون</label>
-            <div className="flex flex-wrap gap-2.5">
-                {colors.map(c => (
-                    <button key={c.value} type="button" onClick={() => setColor(c.value)} title={c.label}
-                        className={`w-9 h-9 rounded-full transition-all duration-150 ${color === c.value ? "ring-2 ring-offset-2 ring-[#800000] scale-110" : ""} ${c.border ? "border-2 border-gray-200" : ""}`}
-                        style={{ backgroundColor: c.value }} />
-                ))}
-            </div>
-            {color && <p className="text-xs text-gray-400 mt-1.5">{colors.find(c => c.value === color)?.label}</p>}
-        </div>
-        <div>
             <label className={labelClass}>ملاحظات (اختياري)</label>
             <textarea ref={notesRef} defaultValue="" placeholder="أي ملاحظات عن المركبة..." rows={3} className={`${inputClass} resize-none`} />
         </div>
@@ -186,7 +175,6 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
     const [step, setStep]         = useState(0);
     const [brand, setBrand]       = useState("");
     const [model, setModel]       = useState("");
-    const [color, setColor]       = useState("#1A1A1A");
     const [unit, setUnit]         = useState("km");
     const [submitting, setSubmitting] = useState(false);
 
@@ -239,11 +227,9 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
             name_ar: `${brandObj?.ar ?? brand} ${modelObj?.ar ?? model}`,
             name_en: `${brand} ${model}`,
             brand,
-            type: "sedan",
             plate_number: plateNumber,
             km: Number(currentKm),
             unit,
-            color,
             year: Number(year),
             ...(registrationExpiry ? { registration_expiry: registrationExpiry } : {}),
             ...(insuranceExpiry ? { insurance_expiry: insuranceExpiry } : {}),
@@ -324,7 +310,6 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
                                     )}
                                     {step === 1 && (
                                         <StepSettings
-                                            color={color} setColor={setColor}
                                             unit={unit} setUnit={setUnit}
                                             kmRef={kmRef} regExpiryRef={regExpiryRef}
                                             insExpiryRef={insExpiryRef} notesRef={notesRef}

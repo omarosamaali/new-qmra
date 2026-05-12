@@ -14,6 +14,26 @@ class VehiclesController extends Controller
         return Auth::check() ? Auth::id() : 1;
     }
 
+    public function index()
+    {
+        $userId   = $this->userId();
+        $vehicles = Vehicle::where('user_id', $userId)->get()->map(fn($v) => [
+            'id'                 => (int) $v->id,
+            'nameAr'             => $v->name_ar,
+            'nameEn'             => $v->name_en,
+            'brand'              => $v->brand,
+            'type'               => $v->type,
+            'plateNumber'        => $v->plate_number,
+            'km'                 => (int) $v->km,
+            'unit'               => $v->unit ?? 'km',
+            'color'              => $v->color,
+            'year'               => (int) $v->year,
+            'registrationExpiry' => $v->registration_expiry?->toDateString(),
+            'insuranceExpiry'    => $v->insurance_expiry?->toDateString(),
+        ]);
+        return \Inertia\Inertia::render('Phone/Vehicles', ['vehicles' => $vehicles]);
+    }
+
     public function store(Request $request)
     {
         $userId = $this->userId();
@@ -21,7 +41,7 @@ class VehiclesController extends Controller
         $request->validate([
             'plate_number' => 'required|string',
             'brand' => 'required|string',
-            'year' => 'required|integer|min:1990|max:'.((int) date('Y') + 1),
+            'year' => 'required|integer|min:1000|max:'.((int) date('Y') + 2),
             'km' => 'required|integer|min:0',
         ], [
             'plate_number.required' => 'رقم اللوحة مطلوب.',
@@ -41,7 +61,8 @@ class VehiclesController extends Controller
             'type'                  => $request->type         ?? 'sedan',
             'plate_number'          => $request->plate_number,
             'km'                    => $request->km,
-            'color'                 => $request->color        ?? '#1A1A1A',
+            'unit'                  => $request->unit         ?? 'km',
+            'color'                 => $request->color        ?? '#800000',
             'year'                  => $request->year,
             'image'                 => null,
             'registration_expiry'   => $request->registration_expiry ?: null,

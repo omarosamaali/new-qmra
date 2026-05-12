@@ -21,13 +21,19 @@ export default function Contact() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        const name    = nameRef.current?.value?.trim()    || "";
+        const email   = emailRef.current?.value?.trim()   || "";
+        const message = messageRef.current?.value?.trim() || "";
+        if (!name || !email || !subject || !message) return;
         setSending(true);
-        router.post('/contact', {
-            name:    nameRef.current?.value?.trim()    || "",
-            email:   emailRef.current?.value?.trim()   || "",
-            subject: subject,
-            message: messageRef.current?.value?.trim() || "",
-        }, {
+        const q = new URLSearchParams();
+        q.set("name",    name);
+        q.set("email",   email);
+        q.set("subject", subject);
+        q.set("message", message);
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
+        if (csrf) q.set("_token", csrf);
+        router.post(`/contact?${q.toString()}`, {}, {
             preserveScroll: true,
             onFinish: () => setSending(false),
         });

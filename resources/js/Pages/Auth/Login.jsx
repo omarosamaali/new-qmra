@@ -108,8 +108,10 @@ export default function Login() {
     return (
         <>
             <Head title={t.title} />
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4" dir={isAr ? "rtl" : "ltr"}>
-                <div className="w-full max-w-sm">
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center px-4"
+                style={{ paddingTop: "calc(env(safe-area-inset-top) + 2rem)", paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)" }}
+                dir={isAr ? "rtl" : "ltr"}>
+                <div className="w-full max-w-sm flex flex-col justify-center flex-1">
 
                     {/* Top row: language + menu */}
                     <div className="flex justify-between items-center mb-4">
@@ -227,7 +229,7 @@ export default function Login() {
                                 <span className="text-sm font-medium">{item.label}</span>
                             </a>
                         ))}
-                        <div className="h-4" />
+                        <div style={{ height: "max(env(safe-area-inset-bottom), 1rem)" }} />
                     </div>
                 </div>
             )}

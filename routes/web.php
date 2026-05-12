@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NotesController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecordsController;
 use App\Http\Controllers\RemindersController;
@@ -94,7 +95,11 @@ Route::middleware(['auth', 'subscribed'])->group(function () {
     Route::put('/reminders/{id}', [RemindersController::class, 'update']);
     Route::delete('/reminders/{id}', [RemindersController::class, 'destroy']);
     Route::post('/reminders/{id}/complete', [RemindersController::class, 'complete']);
-    Route::get('/notes', fn () => Inertia::render('Phone/Notes'));
+    Route::get('/notes',        [NotesController::class, 'index']);
+    Route::post('/notes',       [NotesController::class, 'store']);
+    Route::put('/notes/{id}',   [NotesController::class, 'update']);
+    Route::delete('/notes/{id}',[NotesController::class, 'destroy']);
+    Route::get('/vehicles',     [VehiclesController::class, 'index']);
     Route::get('/services', [ServicesController::class, 'index']);
     Route::post('/services', [ServicesController::class, 'store']);
     Route::delete('/services/{id}', [ServicesController::class, 'destroy']);

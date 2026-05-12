@@ -45,7 +45,7 @@ class ServicesController extends Controller
             ['id' => 10, 'nameAr' => 'سائل التبريد',             'nameEn' => 'Coolant Flush',           'icon' => '🌡️'],
             ['id' => 11, 'nameAr' => 'سائل الفرامل',             'nameEn' => 'Brake Fluid',             'icon' => '💧'],
             ['id' => 12, 'nameAr' => 'سائل ناقل الحركة',         'nameEn' => 'Transmission Fluid',     'icon' => '🔧'],
-            ['id' => 13, 'nameAr' => 'بطارية السيارة',           'nameEn' => 'Battery Check',           'icon' => '🔋'],
+            ['id' => 13, 'nameAr' => 'بطارية المركبة',           'nameEn' => 'Battery Check',           'icon' => '🔋'],
             ['id' => 14, 'nameAr' => 'حزام التوقيت',             'nameEn' => 'Timing Belt',             'icon' => '⚙️'],
             ['id' => 15, 'nameAr' => 'حزام المروحة',             'nameEn' => 'Drive Belt',              'icon' => '🔗'],
             ['id' => 16, 'nameAr' => 'فحص التكييف',              'nameEn' => 'AC Service',              'icon' => '❄️'],
@@ -57,11 +57,11 @@ class ServicesController extends Controller
 
         $vehicleIds = $vehicles->pluck('id');
         $vehicleServices = VehicleService::whereIn('vehicle_id', $vehicleIds)->get()->map(fn($vs) => [
-            'id'          => $vs->id,
-            'vehicleId'   => $vs->vehicle_id,
-            'serviceId'   => $vs->service_id,
-            'intervalKm'  => $vs->interval_km,
-            'intervalDays'=> $vs->interval_days,
+            'id'          => (int) $vs->id,
+            'vehicleId'   => (int) $vs->vehicle_id,
+            'serviceId'   => (int) $vs->service_id,
+            'intervalKm'  => $vs->interval_km  ? (int) $vs->interval_km  : null,
+            'intervalDays'=> $vs->interval_days ? (int) $vs->interval_days : null,
             'cost'        => $vs->cost,
             'notes'       => $vs->notes,
         ]);
@@ -90,7 +90,7 @@ class ServicesController extends Controller
             4 => 'فلتر الكابينة',    5 => 'البواجي',            6 => 'فحص الفرامل',
             7 => 'تبديل الإطارات',  8 => 'ضبط الإطارات',       9 => 'موازنة الإطارات',
            10 => 'سائل التبريد',   11 => 'سائل الفرامل',      12 => 'سائل ناقل الحركة',
-           13 => 'بطارية السيارة', 14 => 'حزام التوقيت',      15 => 'حزام المروحة',
+           13 => 'بطارية المركبة', 14 => 'حزام التوقيت',      15 => 'حزام المروحة',
            16 => 'فحص التكييف',   17 => 'شمعات التوهج',      18 => 'فحص شامل',
            19 => 'تجديد مسح الزجاج', 20 => 'فحص الإضاءة',
         ];

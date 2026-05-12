@@ -234,7 +234,7 @@ function ReminderModal({ vehicles, reminder, onClose }) {
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-4" dir="rtl">
                     <div>
-                        <label className="text-xs text-gray-500 mb-1 block">السيارة</label>
+                        <label className="text-xs text-gray-500 mb-1 block">المركبة</label>
                         <select
                             value={vehicleId}
                             onChange={e => setVehicleId(Number(e.target.value))}
@@ -360,7 +360,7 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
 
     return (
         <>
-            <Head title="التنبيهات - قمرة" />
+            <Head title="المفكرة - قمرة" />
             <div className="min-h-screen bg-gray-100 flex justify-center" dir="rtl">
                 <div className="w-full max-w-sm min-h-screen flex flex-col bg-gray-100">
 
@@ -373,15 +373,7 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
                             >
                                 <BackIcon />
                             </button>
-                            <h1 className="font-bold text-gray-900 text-lg flex-1">التنبيهات</h1>
-                            {vehicles.length > 0 && (
-                                <button
-                                    onClick={() => { setEditReminder(null); setShowModal(true); }}
-                                    className="ml-3 mr-3 w-9 h-9 flex items-center justify-center bg-[#800000] text-white rounded-full active:bg-[#600000]"
-                                >
-                                    <PlusIcon />
-                                </button>
-                            )}
+                            <h1 className="font-bold text-gray-900 text-lg flex-1">المفكرة</h1>
                         </div>
                     </div>
 
@@ -399,7 +391,7 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
                     </div>
 
                     <div className="flex-1 overflow-y-auto no-scrollbar">
-                        <div className="px-4 pt-4 pb-10 space-y-4">
+                        <div className="px-4 pt-4 space-y-4" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 1.5rem), 2.5rem)" }}>
 
                             {/* Vehicle filter */}
                             {vehicles.length > 1 && (

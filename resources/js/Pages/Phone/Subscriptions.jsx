@@ -132,7 +132,16 @@ export default function Subscriptions({ packages = [], subscription = null, sess
                                 <BackIcon />
                             </button>
                         )}
-                        <h1 className="mx-auto font-bold text-gray-900 text-lg px-4">الاشتراكات {import.meta.env.VITE_APP_VERSION_CODE}</h1>
+                        <h1 className="mx-auto font-bold text-gray-900 text-lg px-4">الاشتراكات</h1>
+                        <button
+                            onClick={() => router.post("/logout")}
+                            className="w-9 h-9 flex items-center justify-center text-gray-400 active:text-red-500 transition-colors ml-3"
+                            title="تسجيل الخروج"
+                        >
+                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                            </svg>
+                        </button>
                     </div>
 
                     {/* {sessionId && (
@@ -150,7 +159,7 @@ export default function Subscriptions({ packages = [], subscription = null, sess
                     )}
 
                     <div className="flex-1 overflow-y-auto no-scrollbar">
-                        <div className="px-4 pt-5 pb-10 space-y-4">
+                        <div className="px-4 pt-5 space-y-4" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 1.5rem), 2.5rem)" }}>
 
                             {error && (
                                 <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3">

@@ -319,7 +319,7 @@ const WarrantyRow = ({ warranty, isAr, onEdit, onDelete }) => {
 // ─── Vehicle Section ──────────────────────────────────────────────────────────
 
 const VehicleSection = ({ vehicle, vehicleWarranties, onAdd, onEdit, onDelete, isAr, t }) => {
-    const VIcon = vehicle.type === "suv" ? SuvIcon : CarIcon;
+    const VIcon = CarIcon;
 
     return (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">

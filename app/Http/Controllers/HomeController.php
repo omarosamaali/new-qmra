@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Note;
 use App\Models\Record;
 use App\Models\Reminder;
 use App\Models\Vehicle;
@@ -26,6 +27,7 @@ class HomeController extends Controller
                 'type'                 => $v->type,
                 'plateNumber'          => $v->plate_number,
                 'km'                   => $v->km,
+                'unit'                 => $v->unit ?? 'km',
                 'color'                => $v->color,
                 'year'                 => $v->year,
                 'image'                => $v->image,
@@ -48,7 +50,7 @@ class HomeController extends Controller
             ['id' => 10, 'nameAr' => 'سائل التبريد',          'nameEn' => 'Coolant Flush',      'icon' => '🌡️'],
             ['id' => 11, 'nameAr' => 'سائل الفرامل',          'nameEn' => 'Brake Fluid',        'icon' => '💧'],
             ['id' => 12, 'nameAr' => 'سائل ناقل الحركة',      'nameEn' => 'Transmission Fluid','icon' => '🔧'],
-            ['id' => 13, 'nameAr' => 'بطارية السيارة',        'nameEn' => 'Battery Check',      'icon' => '🔋'],
+            ['id' => 13, 'nameAr' => 'بطارية المركبة',        'nameEn' => 'Battery Check',      'icon' => '🔋'],
             ['id' => 14, 'nameAr' => 'حزام التوقيت',          'nameEn' => 'Timing Belt',        'icon' => '⚙️'],
             ['id' => 15, 'nameAr' => 'حزام المروحة',          'nameEn' => 'Drive Belt',         'icon' => '🔗'],
             ['id' => 16, 'nameAr' => 'فحص التكييف',           'nameEn' => 'AC Service',         'icon' => '❄️'],
@@ -93,12 +95,14 @@ class HomeController extends Controller
             'notes'      => $w->notes,
         ]);
 
+        $notesCount = Note::where('user_id', $userId)->count();
+
         $vehicleIds = $vehicles->pluck('id');
         $vehicleServicesCount = VehicleService::whereIn('vehicle_id', $vehicleIds)->count();
 
         $vehicleServices = VehicleService::whereIn('vehicle_id', $vehicleIds)->get()->map(fn($vs) => [
-            'vehicleId' => $vs->vehicle_id,
-            'serviceId' => $vs->service_id,
+            'vehicleId' => (int) $vs->vehicle_id,
+            'serviceId' => (int) $vs->service_id,
         ]);
 
         $subscription = request()->session()->get('subscription', [
@@ -106,6 +110,6 @@ class HomeController extends Controller
             'addons_count' => 0,
         ]);
 
-        return Inertia::render('Home', compact('vehicles','services','reminders','records','warranties','vehicleServicesCount','vehicleServices','subscription'));
+        return Inertia::render('Home', compact('vehicles','services','reminders','records','warranties','vehicleServicesCount','vehicleServices','subscription','notesCount'));
     }
 }

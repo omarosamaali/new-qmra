@@ -56,10 +56,11 @@ const recurrenceLabel = (o, unit = "km") => {
         : o.label;
 };
 
-const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }) => {
+const AddServiceModal = ({ vehicleId, vehicleUnit = "km", allServices, existingServiceIds, onClose }) => {
     const [serviceId,  setServiceId]  = useState("");
     const [recurrence, setRecurrence] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [error,      setError]      = useState("");
 
     const costRef  = useRef(null);
     const notesRef = useRef(null);
@@ -73,6 +74,7 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
         const cost  = costRef.current?.value?.trim()  || null;
         const notes = notesRef.current?.value?.trim() || null;
         setSubmitting(true);
+        setError("");
         const q = new URLSearchParams();
         q.set("vehicle_id", String(vehicleId));
         q.set("service_id", String(Number(serviceId)));
@@ -83,7 +85,14 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
         router.post(
             `/services?${q.toString()}`,
             {},
-            { onFinish: () => { setSubmitting(false); onClose(); } }
+            {
+                onSuccess: () => { setSubmitting(false); onClose(); },
+                onError: (errs) => {
+                    setSubmitting(false);
+                    const msg = Object.values(errs)[0] ?? "حدث خطأ، حاول مرة أخرى";
+                    setError(typeof msg === "string" ? msg : "حدث خطأ، حاول مرة أخرى");
+                },
+            }
         );
     };
 
@@ -103,6 +112,11 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
                     </p>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {error && (
+                            <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+                                <p className="text-sm text-red-600 text-center">{error}</p>
+                            </div>
+                        )}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
                                 نوع الخدمة <span className="text-[#800000]">*</span>
@@ -122,7 +136,7 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
                             <select value={recurrence} onChange={(e) => setRecurrence(e.target.value)} className={inputClass} required>
                                 <option value="">اختر التكرار</option>
                                 {RECURRENCE_OPTIONS.map(o => (
-                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                    <option key={o.value} value={o.value}>{recurrenceLabel(o, vehicleUnit)}</option>
                                 ))}
                             </select>
                         </div>
@@ -234,7 +248,7 @@ const ServiceRow = ({ vs, allServices, onDelete, unit = "km" }) => {
 // ─── Vehicle Section ──────────────────────────────────────────────────────────
 
 const VehicleSection = ({ vehicle, vehicleServicesList, allServices, onAddService, onDelete }) => {
-    const VIcon = vehicle.type === "suv" ? SuvIcon : CarIcon;
+    const VIcon = CarIcon;
 
     return (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -311,7 +325,7 @@ export default function Services({ vehicles = [], services = [], vehicleServices
                     </div>
 
                     <div className="flex-1 overflow-y-auto no-scrollbar">
-                        <div className="px-4 pt-4 pb-10 space-y-4">
+                        <div className="px-4 pt-4 space-y-4" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 1.5rem), 2.5rem)" }}>
                             {vehicles.length === 0 ? (
                                 <p className="text-sm text-gray-400 text-center py-16">
                                     لا توجد مركبات — أضف مركبة أولاً
@@ -336,6 +350,7 @@ export default function Services({ vehicles = [], services = [], vehicleServices
             {modalVehicleId !== null && modalVehicle && (
                 <AddServiceModal
                     vehicleId={modalVehicleId}
+                    vehicleUnit={modalVehicle.unit || "km"}
                     allServices={services}
                     existingServiceIds={existingServiceIds}
                     onClose={() => setModalVehicleId(null)}

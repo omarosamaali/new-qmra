@@ -155,6 +155,14 @@ return [
         'emulator_path' => env('ANDROID_EMULATOR'),
         '7zip-location' => env('NATIVEPHP_7ZIP_LOCATION', 'C:\\Program Files\\7-Zip\\7z.exe'),
 
+        'permissions' => [
+            'android.permission.CAMERA',
+        ],
+
+        'features' => [
+            'android.hardware.camera',
+        ],
+
         /*
         |--------------------------------------------------------------------------
         | Android SDK Versions
