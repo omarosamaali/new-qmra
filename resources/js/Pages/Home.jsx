@@ -8,6 +8,7 @@ import { brandsData } from "../Components/BrandsData";
 // ─── Menu Drawer ──────────────────────────────────────────────────────────────
 
 const menuItems = [
+    { icon: "📝", ar: "المفكرة",           en: "Notes",           route: "/notes" },
     { icon: "📋", ar: "السجلات",          en: "Records",         route: "/records" },
     { icon: "💳", ar: "الاشتراكات",       en: "Subscriptions",   route: "/subscriptions" },
     { icon: "💬", ar: "تواصل معنا",       en: "Contact Us",      route: "/contact" },
