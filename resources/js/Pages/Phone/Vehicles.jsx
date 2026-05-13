@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Head, router } from "@inertiajs/react";
 import { brandsData } from "../../Components/BrandsData";
+import { normalizeOdometerUnit, odometerSuffix } from "../../utils/units";
 
 const BackIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-9 h-9">
@@ -25,7 +26,11 @@ const PlusIcon = () => (
 
 const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400";
 
-const formatKm = (km, unit = "km") => km.toLocaleString("en") + (unit === "mi" ? " mi" : " كم");
+const formatKm = (km, unit = "km") => {
+    const u = normalizeOdometerUnit(unit);
+    const suf = odometerSuffix(u, true);
+    return `${Number(km).toLocaleString("en")} ${suf}`;
+};
 
 const EditSheet = ({ vehicle, onClose, onSave }) => {
     const brandObj  = brandsData.find(b => b.en === vehicle.brand);
@@ -36,7 +41,7 @@ const EditSheet = ({ vehicle, onClose, onSave }) => {
     const [form,  setForm]  = useState({
         plateNumber:        vehicle.plateNumber,
         km:                 String(vehicle.km),
-        unit:               vehicle.unit || "km",
+        unit:               normalizeOdometerUnit(vehicle.unit),
         year:               String(vehicle.year),
         registrationExpiry: vehicle.registrationExpiry || "",
         insuranceExpiry:    vehicle.insuranceExpiry    || "",
@@ -56,6 +61,7 @@ const EditSheet = ({ vehicle, onClose, onSave }) => {
             nameEn: nameEn || vehicle.nameEn,
             km: Number(form.km),
             year: Number(form.year),
+            unit: normalizeOdometerUnit(form.unit),
         });
         onClose();
     };
@@ -88,7 +94,19 @@ const EditSheet = ({ vehicle, onClose, onSave }) => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">سنة الصنع</label>
-                        <input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} className={inputClass} dir="ltr" />
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            value={form.year}
+                            onChange={e => {
+                                const y = e.target.value.replace(/\D/g, "").slice(0, 4);
+                                setForm(f => ({ ...f, year: y }));
+                            }}
+                            className={inputClass}
+                            dir="ltr"
+                            maxLength={4}
+                            placeholder="2020"
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">نوع العداد</label>
@@ -109,7 +127,7 @@ const EditSheet = ({ vehicle, onClose, onSave }) => {
                         </label>
                         <div className="relative">
                             <input type="number" value={form.km} onChange={e => setForm(f => ({ ...f, km: e.target.value }))} className={inputClass} dir="ltr" />
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">{form.unit}</span>
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">{odometerSuffix(form.unit, true)}</span>
                         </div>
                     </div>
                     <div>

@@ -1,4 +1,5 @@
 import { Head, router } from "@inertiajs/react";
+import { logoDark } from "../../brand/assets";
 
 const BackIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-9 h-9">
@@ -27,7 +28,7 @@ export default function About({ aboutUs }) {
                         <div className="px-4 pt-6 pb-10">
 
                             <div className="bg-white rounded-3xl p-6 shadow-sm flex flex-col items-center text-center mb-5">
-                                <img src="/images/dark-logo.png" alt="قمرة" className="h-20 object-contain mb-4" />
+                                <img src={logoDark} alt="قمرة" className="h-20 object-contain mb-4" />
                                 <h2 className="font-bold text-gray-900 text-xl mb-1">قمرة</h2>
                                 <p className="text-xs text-gray-400">الإصدار 1.0.0</p>
                             </div>

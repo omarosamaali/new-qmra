@@ -4,7 +4,8 @@ import axios from "axios";
 import jsQR from "jsqr";
 import { useLanguage } from "../utils/language";
 import { brandsData } from "../Components/BrandsData";
-// import { Fav } from "../../../public/images/fav";
+import { logoDark, logoLight, iconFav } from "../brand/assets";
+import { normalizeOdometerUnit, odometerSuffix } from "../utils/units";
 // ─── Menu Drawer ──────────────────────────────────────────────────────────────
 
 const menuItems = [
@@ -46,7 +47,7 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
 
                 {/* Header - covers top safe area */}
                 <div className="px-5 pb-5 bg-black" style={{ paddingTop: "calc(env(safe-area-inset-top) + 2rem)" }}>
-                    <img src="/images/light-logo.png" alt="قمرة" className="h-12 object-contain mb-3" />
+                    <img src={logoLight} alt="قمرة" className="h-12 object-contain mb-3" />
                     <p className="text-white/80 text-xs">
                         {isAr ? "صديقك لإدارة مركبتك بذكاء" : "Your smart car friend"}
                     </p>
@@ -90,7 +91,7 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
                             className="w-full flex items-center gap-3 px-5 py-3 active:bg-gray-50 transition-colors"
                         >
                             <span className="text-xl w-7 text-center leading-none">
-                                <img className="w-4" src="/images/fav.png" alt="" />
+                                <img className="w-4" src={iconFav} alt="" />
                             </span>
                             <span className="font-medium text-gray-800 text-sm">
                                 {isAr ? item.ar : item.en}
@@ -177,7 +178,7 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
         year:               String(vehicle.year),
         plateNumber:        vehicle.plateNumber,
         km:                 String(vehicle.km),
-        unit:               vehicle.unit || "km",
+        unit:               normalizeOdometerUnit(vehicle.unit),
         registrationExpiry: vehicle.registrationExpiry || "",
         insuranceExpiry:    vehicle.insuranceExpiry    || "",
     });
@@ -194,7 +195,7 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
         const mObj   = bObj?.models.find(m => m.en === model);
         const nameAr = `${bObj?.ar ?? brand} ${mObj?.ar ?? model}`.trim() || vehicle.nameAr;
         const nameEn = `${brand} ${model}`.trim() || vehicle.nameEn;
-        onSave({ ...vehicle, ...form, brand, nameAr, nameEn, year: Number(form.year), km: Number(form.km) });
+        onSave({ ...vehicle, ...form, brand, nameAr, nameEn, year: Number(form.year), km: Number(form.km), unit: normalizeOdometerUnit(form.unit) });
         handleClose();
     };
 
@@ -230,7 +231,19 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
                     {/* Year */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("السنة", "Year")}</label>
-                        <input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} className={inputClass} dir="ltr" />
+                        <input
+                            type="text"
+                            inputMode="numeric"
+                            value={form.year}
+                            onChange={e => {
+                                const y = e.target.value.replace(/\D/g, "").slice(0, 4);
+                                setForm(f => ({ ...f, year: y }));
+                            }}
+                            className={inputClass}
+                            dir="ltr"
+                            maxLength={4}
+                            placeholder="2020"
+                        />
                     </div>
 
                     {/* Plate */}
@@ -262,7 +275,7 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
                         </label>
                         <div className="relative">
                             <input type="number" value={form.km} onChange={e => setForm(f => ({ ...f, km: e.target.value }))} className={inputClass} dir="ltr" />
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">{form.unit === "mi" ? "mi" : "كم"}</span>
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">{odometerSuffix(form.unit, isAr)}</span>
                         </div>
                     </div>
 
@@ -558,7 +571,11 @@ const VehicleViewSheet = ({ vehicle, addonsLimit, linkedCount, onClose, onLinked
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const formatKm = (km, unit = "km") => km.toLocaleString("en") + (unit === "mi" ? " mi" : " كم");
+const formatKm = (km, unit = "km", isAr = true) => {
+    const u = normalizeOdometerUnit(unit);
+    const suf = odometerSuffix(u, isAr);
+    return `${Number(km).toLocaleString("en")} ${suf}`;
+};
 
 const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -651,7 +668,7 @@ const  VehicleCard = ({ vehicle, reminders = [], isSelected, onClick, onEdit, on
                 </div>
 
                 <div className="flex justify-between items-center bg-gray-50 rounded-xl px-3 py-2 mb-3">
-                    <span className="text-sm font-bold text-[#800000]">{formatKm(vehicle.km, vehicle.unit)}</span>
+                    <span className="text-sm font-bold text-[#800000]">{formatKm(vehicle.km, vehicle.unit, isAr)}</span>
                     <span className="text-sm font-semibold text-gray-600">{vehicle.plateNumber}</span>
                 </div>
             </div>
@@ -702,10 +719,10 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const notify = (title, body) => {
             if (Notification.permission === "granted") {
-                new Notification(title, { body, icon: "/images/fav.png" });
+                new Notification(title, { body, icon: iconFav });
             } else if (Notification.permission !== "denied") {
                 Notification.requestPermission().then(p => {
-                    if (p === "granted") new Notification(title, { body, icon: "/images/fav.png" });
+                    if (p === "granted") new Notification(title, { body, icon: iconFav });
                 });
             }
         };
@@ -820,7 +837,7 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
                             <span className="w-5 h-0.5 bg-[#800000] rounded-full" />
                             <span className="w-5 h-0.5 bg-[#800000] rounded-full" />
                         </button>
-                        <img src="/images/dark-logo.png" alt="قمرة" className="h-9 object-contain" />
+                        <img src={logoDark} alt="قمرة" className="h-9 object-contain" />
                         <button
                             onClick={() => router.get("/add-vehicle")}
                             className="relative w-10 h-10 flex items-center justify-center active:opacity-80 transition-opacity"

@@ -11,13 +11,20 @@
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.jsx'])
         @inertiaHead
-        @if(request()->getHost() === 'app.qmra.ae')
+        @php
+            $host = request()->getHost();
+            $onesignalWeb = $host === 'app.qmra.ae'
+                || in_array($host, ['127.0.0.1', 'localhost', '10.0.2.2'], true)
+                || filter_var($host, FILTER_VALIDATE_IP)
+                || (bool) env('ONESIGNAL_WEB_SDK', false);
+            $onesignalAppId = env('ONESIGNAL_APP_ID', 'd931525f-d834-404e-ac9d-2637743cca16');
+        @endphp
+        @if($onesignalWeb && $onesignalAppId)
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
         <script>
-            // Web push (browser) — only on production domain
             window.OneSignalDeferred = window.OneSignalDeferred || [];
             OneSignalDeferred.push(async function(OneSignal) {
-                await OneSignal.init({ appId: "d931525f-d834-404e-ac9d-2637743cca16" });
+                await OneSignal.init({ appId: "{{ $onesignalAppId }}" });
                 @auth
                 OneSignal.login("{{ Auth::id() }}");
                 @endauth

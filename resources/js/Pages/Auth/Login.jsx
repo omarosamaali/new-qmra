@@ -1,6 +1,6 @@
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import { useState, useRef } from "react";
-import axios from "axios";
+import { logoDark } from "../../brand/assets";
 
 const LANG_KEY = "app_lang";
 
@@ -65,16 +65,7 @@ export default function Login() {
         try { localStorage.setItem(LANG_KEY, v); } catch {}
     };
 
-    const buildLoginQueryString = (fields) => {
-        const params = new URLSearchParams();
-        params.append("email", fields.email);
-        params.append("password", fields.password);
-        const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
-        if (csrf) params.append("_token", csrf);
-        return params.toString();
-    };
-
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         const email    = (emailVal    || emailRef.current?.value    || "").trim();
         const password = (passwordVal || passwordRef.current?.value || "").trim();
@@ -84,25 +75,17 @@ export default function Login() {
         if (Object.keys(errs).length) { setErrors(errs); return; }
         setErrors({});
         setProcessing(true);
-        try {
-            await axios.get("/sanctum/csrf-cookie");
-            const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
-            const qs = buildLoginQueryString({ email, password });
-            const res = await axios.post(`/login?${qs}`, null, {
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json",
-                    ...(csrf ? { "X-CSRF-TOKEN": csrf } : {}),
-                },
-            });
-            window.location.href = res.data?.redirect || "/";
-        } catch (err) {
-            const data = err.response?.data;
-            if (data?.errors) setErrors(data.errors);
-            else setErrors({ email: data?.message || "حدث خطأ، حاول مرة أخرى" });
-        } finally {
-            setProcessing(false);
-        }
+        router.post("/login", { email, password }, {
+            preserveScroll: true,
+            onError: (pageErrors) => {
+                const flat = {};
+                if (pageErrors?.email) flat.email = Array.isArray(pageErrors.email) ? pageErrors.email[0] : pageErrors.email;
+                if (pageErrors?.password) flat.password = Array.isArray(pageErrors.password) ? pageErrors.password[0] : pageErrors.password;
+                if (Object.keys(flat).length) setErrors(flat);
+                else setErrors({ email: "حدث خطأ، حاول مرة أخرى" });
+            },
+            onFinish: () => setProcessing(false),
+        });
     };
 
     return (
@@ -136,7 +119,7 @@ export default function Login() {
 
                     {/* Logo */}
                     <div className="flex flex-col items-center mb-10">
-                        <img src="/images/dark-logo.png" alt="قمرة" className="h-20 object-contain mb-3" />
+                        <img src={logoDark} alt="قمرة" className="h-20 object-contain mb-3" />
                         <p className="text-gray-500 text-sm">{t.subtitle}</p>
                     </div>
 

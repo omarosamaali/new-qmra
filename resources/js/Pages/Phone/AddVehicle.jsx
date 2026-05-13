@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import { brandsData } from "../../Components/BrandsData";
 import { BackIcon } from "../../Icons/BackIcon";
+import { odometerSuffix } from "../../utils/units";
 
 const CheckIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -105,7 +106,19 @@ const StepInfo = ({ brand, model, setBrand, setModel, yearRef, plateRef }) => {
             </div>
             <div>
                 <label className={labelClass}>سنة الصنع <span className="text-[#800000]">*</span></label>
-                <input ref={yearRef} type="number" defaultValue="" placeholder="مثال: 2021" maxLength={4} className={inputClass} />
+                <input
+                    ref={yearRef}
+                    type="text"
+                    inputMode="numeric"
+                    defaultValue=""
+                    placeholder="مثال: 2021"
+                    maxLength={4}
+                    onChange={e => {
+                        const el = e.target;
+                        el.value = el.value.replace(/\D/g, "").slice(0, 4);
+                    }}
+                    className={inputClass}
+                />
             </div>
             <div>
                 <label className={labelClass}>رقم اللوحة <span className="text-[#800000]">*</span></label>
@@ -148,7 +161,7 @@ const StepSettings = ({ unit, setUnit, kmRef, regExpiryRef, insExpiryRef, notesR
             </label>
             <div className="relative">
                 <input ref={kmRef} type="number" defaultValue="" placeholder="مثال: 85000" className={inputClass} />
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">{unit === "mi" ? "mi" : "كم"}</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">{odometerSuffix(unit, true)}</span>
             </div>
         </div>
         <div>

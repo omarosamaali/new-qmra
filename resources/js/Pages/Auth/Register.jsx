@@ -1,6 +1,6 @@
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import { useState, useRef } from "react";
-import axios from "axios";
+import { logoDark } from "../../brand/assets";
 
 const LANG_KEY = "app_lang";
 
@@ -85,20 +85,7 @@ export default function Register() {
 
     const clearErr = (key) => setErrors(p => ({ ...p, [key]: "" }));
 
-    /** Query string so Laravel Request is filled when POST body is not parsed (e.g. embedded WebView). */
-    const buildRegisterQueryString = (fields) => {
-        const params = new URLSearchParams();
-        params.append("name", fields.name);
-        params.append("email", fields.email);
-        if (fields.phone) params.append("phone", fields.phone);
-        params.append("password", fields.password);
-        params.append("password_confirmation", fields.password_confirmation);
-        const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
-        if (csrf) params.append("_token", csrf);
-        return params.toString();
-    };
-
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         const name                  = (nameVal     || nameRef.current?.value     || "").trim();
         const email                 = (emailVal    || emailRef.current?.value    || "").trim();
@@ -117,25 +104,26 @@ export default function Register() {
 
         setErrors({});
         setProcessing(true);
-        try {
-            await axios.get("/sanctum/csrf-cookie");
-            const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? "";
-            const qs = buildRegisterQueryString({ name, email, phone, password, password_confirmation });
-            const res = await axios.post(`/register?${qs}`, null, {
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest",
-                    "Accept": "application/json",
-                    ...(csrf ? { "X-CSRF-TOKEN": csrf } : {}),
-                },
-            });
-            window.location.href = res.data?.redirect || "/";
-        } catch (err) {
-            const data = err.response?.data;
-            if (data?.errors) setErrors(data.errors);
-            else setErrors({ name: data?.message || "حدث خطأ، حاول مرة أخرى" });
-        } finally {
-            setProcessing(false);
-        }
+        router.post("/register", {
+            name,
+            email,
+            phone: phone || undefined,
+            password,
+            password_confirmation,
+        }, {
+            preserveScroll: true,
+            onError: (pageErrors) => {
+                if (pageErrors && typeof pageErrors === "object") {
+                    const next = {};
+                    Object.keys(pageErrors).forEach((k) => {
+                        const v = pageErrors[k];
+                        next[k] = Array.isArray(v) ? v[0] : v;
+                    });
+                    setErrors(next);
+                } else setErrors({ name: "حدث خطأ، حاول مرة أخرى" });
+            },
+            onFinish: () => setProcessing(false),
+        });
     };
 
     return (
@@ -169,7 +157,7 @@ export default function Register() {
 
                     {/* Logo */}
                     <div className="flex flex-col items-center mb-8">
-                        <img src="/images/dark-logo.png" alt="قمرة" className="h-20 object-contain mb-3" />
+                        <img src={logoDark} alt="قمرة" className="h-20 object-contain mb-3" />
                         <p className="text-gray-500 text-sm">{t.subtitle}</p>
                     </div>
 

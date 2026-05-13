@@ -1,6 +1,7 @@
 import { Head } from "@inertiajs/react";
 import { useState, useRef } from "react";
 import axios from "axios";
+import { logoDark } from "../../brand/assets";
 
 const LANG_KEY = "app_lang";
 
@@ -126,7 +127,7 @@ export default function ForgotPassword() {
 
                     {/* Logo */}
                     <div className="flex flex-col items-center mb-10">
-                        <img src="/images/dark-logo.png" alt="قمرة" className="h-20 object-contain mb-3" />
+                        <img src={logoDark} alt="قمرة" className="h-20 object-contain mb-3" />
                         <p className="font-bold text-gray-800 text-lg">
                             {step === 1 ? t.step1Title : step === 2 ? t.step2Title : t.resetDone}
                         </p>
