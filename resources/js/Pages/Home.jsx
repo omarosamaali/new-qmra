@@ -6,6 +6,7 @@ import { useLanguage } from "../utils/language";
 import { brandsData } from "../Components/BrandsData";
 import { logoDark, logoLight, iconFav } from "../brand/assets";
 import { normalizeOdometerUnit, odometerSuffix } from "../utils/units";
+import { hasReminderBridge, reconcileExpiryAlarms } from "../utils/nativeReminders";
 // ─── Menu Drawer ──────────────────────────────────────────────────────────────
 
 const menuItems = [
@@ -704,17 +705,32 @@ const ServiceChip = ({ service, isSelected, onClick, isAr }) => (
 
 export default function Home({ vehicles = [], services = [], reminders = [], records = [], warranties = [], vehicleServicesCount = 0, vehicleServices = [], subscription = {}, notesCount = 0 }) {
     const [localVehicles, setLocalVehicles] = useState(vehicles);
+    const expiryAlarmKeysRef = useRef(new Set());
     useEffect(() => { setLocalVehicles(vehicles); }, [vehicles]);
 
-    // Request notification permission on first load
+    const { lang, setLang, isAr, t } = useLanguage();
+
+    // APK: schedule real alarms via Android ReminderBridge (see nativeReminders.js)
     useEffect(() => {
+        if (!hasReminderBridge()) return;
+        reconcileExpiryAlarms(expiryAlarmKeysRef, {
+            vehicles: localVehicles,
+            warranties,
+            isAr,
+        });
+    }, [localVehicles, warranties, isAr]);
+
+    // Request browser notification permission (website / WebView that supports it)
+    useEffect(() => {
+        if (hasReminderBridge()) return;
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission();
         }
     }, []);
 
-    // Browser notifications for expiry alerts
+    // Browser-only expiry toasts when opening the app (no ReminderBridge)
     useEffect(() => {
+        if (hasReminderBridge()) return;
         if (!("Notification" in window)) return;
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const notify = (title, body) => {
@@ -726,18 +742,20 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
                 });
             }
         };
-        vehicles.forEach(v => {
-            const check = (dateStr, label) => {
+        localVehicles.forEach(v => {
+            const name = isAr ? v.nameAr : v.nameEn;
+            const check = (dateStr, labelAr, labelEn) => {
                 if (!dateStr) return;
+                const label = isAr ? labelAr : labelEn;
                 const exp = new Date(dateStr);
                 const diff = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
-                if (diff < 0)       notify(`🚨 ${label} منتهي`, `${v.nameAr} — انتهى منذ ${Math.abs(diff)} يوم`);
-                else if (diff <= 7) notify(`⚠️ ${label} قريب الانتهاء`, `${v.nameAr} — ينتهي خلال ${diff} يوم`);
+                if (diff < 0)       notify(`🚨 ${label} — ${isAr ? "منتهي" : "expired"}`, `${name} — ${isAr ? `انتهى منذ ${Math.abs(diff)} يوم` : `${Math.abs(diff)} days ago`}`);
+                else if (diff <= 7) notify(`⚠️ ${label} — ${isAr ? "قريب الانتهاء" : "expiring soon"}`, `${name} — ${isAr ? `ينتهي خلال ${diff} يوم` : `in ${diff} days`}`);
             };
-            check(v.registrationExpiry, "تسجيل المركبة");
-            check(v.insuranceExpiry,    "التأمين");
+            check(v.registrationExpiry, "تسجيل المركبة", "Registration");
+            check(v.insuranceExpiry,    "التأمين",        "Insurance");
         });
-    }, []);
+    }, [localVehicles, isAr]);
     const [editingVehicle, setEditingVehicle] = useState(null);
     const [deletingVehicle, setDeletingVehicle] = useState(null);
     const [viewingVehicle, setViewingVehicle] = useState(null);
@@ -748,7 +766,6 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
     const [selectedServiceId, setSelectedServiceId] = useState(null);
     const [selectedWarrantyId, setSelectedWarrantyId] = useState(null);
     const [menuOpen, setMenuOpen] = useState(false);
-    const { lang, setLang, isAr, t } = useLanguage();
 
     const handleEditSave = (updated) => {
         setLocalVehicles(prev => prev.map(v => v.id === updated.id ? updated : v));

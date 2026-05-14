@@ -1,10 +1,14 @@
 {
-  "_language-CHw0F9Qt.js": {
-    "file": "assets/language-CHw0F9Qt.js",
+  "_language-2Fjhoeha.js": {
+    "file": "assets/language-2Fjhoeha.js",
     "name": "language",
     "imports": [
       "resources/js/app.jsx"
     ]
+  },
+  "_nativeReminders-pkU96RNI.js": {
+    "file": "assets/nativeReminders-pkU96RNI.js",
+    "name": "nativeReminders"
   },
   "_qmra-logo-dark-B10Lz79P.js": {
     "file": "assets/qmra-logo-dark-B10Lz79P.js",
@@ -18,7 +22,7 @@
     "name": "units"
   },
   "resources/css/app.css": {
-    "file": "assets/app-C1Hqhk1m.css",
+    "file": "assets/app-B-v1XQA3.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -35,7 +39,7 @@
     "src": "resources/images/qmra-logo-light.svg"
   },
   "resources/js/Pages/Auth/ForgotPassword.jsx": {
-    "file": "assets/ForgotPassword-C4qrWXmm.js",
+    "file": "assets/ForgotPassword-BBA512BX.js",
     "name": "ForgotPassword",
     "src": "resources/js/Pages/Auth/ForgotPassword.jsx",
     "isDynamicEntry": true,
@@ -45,7 +49,7 @@
     ]
   },
   "resources/js/Pages/Auth/Login.jsx": {
-    "file": "assets/Login-B-ZzCNXQ.js",
+    "file": "assets/Login-COmy1pqd.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.jsx",
     "isDynamicEntry": true,
@@ -55,7 +59,7 @@
     ]
   },
   "resources/js/Pages/Auth/Register.jsx": {
-    "file": "assets/Register-C7_9aU__.js",
+    "file": "assets/Register-DwmWwefJ.js",
     "name": "Register",
     "src": "resources/js/Pages/Auth/Register.jsx",
     "isDynamicEntry": true,
@@ -65,15 +69,16 @@
     ]
   },
   "resources/js/Pages/Home.jsx": {
-    "file": "assets/Home-CuCLzDk0.js",
+    "file": "assets/Home-C6b_jsgS.js",
     "name": "Home",
     "src": "resources/js/Pages/Home.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_language-CHw0F9Qt.js",
+      "_language-2Fjhoeha.js",
       "_units-gQ6qw-gv.js",
-      "_qmra-logo-dark-B10Lz79P.js"
+      "_qmra-logo-dark-B10Lz79P.js",
+      "_nativeReminders-pkU96RNI.js"
     ],
     "assets": [
       "assets/qmra-logo-light-CgcE_g9I.svg",
@@ -81,7 +86,7 @@
     ]
   },
   "resources/js/Pages/Phone/About.jsx": {
-    "file": "assets/About-Belzmmvr.js",
+    "file": "assets/About-C9DCFCej.js",
     "name": "About",
     "src": "resources/js/Pages/Phone/About.jsx",
     "isDynamicEntry": true,
@@ -91,17 +96,17 @@
     ]
   },
   "resources/js/Pages/Phone/Add.jsx": {
-    "file": "assets/Add-WbQAMszD.js",
+    "file": "assets/Add-Bf9K38xJ.js",
     "name": "Add",
     "src": "resources/js/Pages/Phone/Add.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_language-CHw0F9Qt.js"
+      "_language-2Fjhoeha.js"
     ]
   },
   "resources/js/Pages/Phone/AddService.jsx": {
-    "file": "assets/AddService-DP1ZIWP4.js",
+    "file": "assets/AddService-D1QtYItg.js",
     "name": "AddService",
     "src": "resources/js/Pages/Phone/AddService.jsx",
     "isDynamicEntry": true,
@@ -110,7 +115,7 @@
     ]
   },
   "resources/js/Pages/Phone/AddVehicle.jsx": {
-    "file": "assets/AddVehicle-Bji847Lc.js",
+    "file": "assets/AddVehicle-CtvMVSKU.js",
     "name": "AddVehicle",
     "src": "resources/js/Pages/Phone/AddVehicle.jsx",
     "isDynamicEntry": true,
@@ -120,7 +125,7 @@
     ]
   },
   "resources/js/Pages/Phone/Contact.jsx": {
-    "file": "assets/Contact-BVzBLL1a.js",
+    "file": "assets/Contact-BikwvqCI.js",
     "name": "Contact",
     "src": "resources/js/Pages/Phone/Contact.jsx",
     "isDynamicEntry": true,
@@ -129,7 +134,7 @@
     ]
   },
   "resources/js/Pages/Phone/Notes.jsx": {
-    "file": "assets/Notes-DEUG75fp.js",
+    "file": "assets/Notes-CYrpYLVm.js",
     "name": "Notes",
     "src": "resources/js/Pages/Phone/Notes.jsx",
     "isDynamicEntry": true,
@@ -138,7 +143,7 @@
     ]
   },
   "resources/js/Pages/Phone/Profile.jsx": {
-    "file": "assets/Profile-DBy2btQV.js",
+    "file": "assets/Profile-mv88W9zZ.js",
     "name": "Profile",
     "src": "resources/js/Pages/Phone/Profile.jsx",
     "isDynamicEntry": true,
@@ -147,7 +152,7 @@
     ]
   },
   "resources/js/Pages/Phone/Records.jsx": {
-    "file": "assets/Records-Ds4UvqJw.js",
+    "file": "assets/Records-VGpuOGVg.js",
     "name": "Records",
     "src": "resources/js/Pages/Phone/Records.jsx",
     "isDynamicEntry": true,
@@ -156,16 +161,17 @@
     ]
   },
   "resources/js/Pages/Phone/Reminders.jsx": {
-    "file": "assets/Reminders-CCtplKOP.js",
+    "file": "assets/Reminders-C7PBpNJw.js",
     "name": "Reminders",
     "src": "resources/js/Pages/Phone/Reminders.jsx",
     "isDynamicEntry": true,
     "imports": [
-      "resources/js/app.jsx"
+      "resources/js/app.jsx",
+      "_nativeReminders-pkU96RNI.js"
     ]
   },
   "resources/js/Pages/Phone/Services.jsx": {
-    "file": "assets/Services-QrvLMtB8.js",
+    "file": "assets/Services-BAHgfD4A.js",
     "name": "Services",
     "src": "resources/js/Pages/Phone/Services.jsx",
     "isDynamicEntry": true,
@@ -174,7 +180,7 @@
     ]
   },
   "resources/js/Pages/Phone/Subscriptions.jsx": {
-    "file": "assets/Subscriptions-Cur-NeE4.js",
+    "file": "assets/Subscriptions-BRsUwwd0.js",
     "name": "Subscriptions",
     "src": "resources/js/Pages/Phone/Subscriptions.jsx",
     "isDynamicEntry": true,
@@ -183,7 +189,7 @@
     ]
   },
   "resources/js/Pages/Phone/Terms.jsx": {
-    "file": "assets/Terms-KNhoTYKT.js",
+    "file": "assets/Terms-iBiM-xnK.js",
     "name": "Terms",
     "src": "resources/js/Pages/Phone/Terms.jsx",
     "isDynamicEntry": true,
@@ -192,7 +198,7 @@
     ]
   },
   "resources/js/Pages/Phone/Vehicles.jsx": {
-    "file": "assets/Vehicles-Crneu0ER.js",
+    "file": "assets/Vehicles-PL9fqTB0.js",
     "name": "Vehicles",
     "src": "resources/js/Pages/Phone/Vehicles.jsx",
     "isDynamicEntry": true,
@@ -202,17 +208,17 @@
     ]
   },
   "resources/js/Pages/Phone/Warranty.jsx": {
-    "file": "assets/Warranty-BXCg_kjf.js",
+    "file": "assets/Warranty-B982-X1z.js",
     "name": "Warranty",
     "src": "resources/js/Pages/Phone/Warranty.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_language-CHw0F9Qt.js"
+      "_language-2Fjhoeha.js"
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-B_YL5MCU.js",
+    "file": "assets/app-BaBiQfU-.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -237,7 +243,7 @@
       "resources/js/Pages/Phone/Warranty.jsx"
     ],
     "css": [
-      "assets/app-C1Hqhk1m.css"
+      "assets/app-B-v1XQA3.css"
     ]
   }
 }

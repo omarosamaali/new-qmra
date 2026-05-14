@@ -27,6 +27,8 @@ const EditIcon = () => (
     </svg>
 );
 
+import { hasReminderBridge } from "../../utils/nativeReminders";
+
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
@@ -40,12 +42,6 @@ const to12h = (time24) => {
 const isUpcoming = (r) => !r.completed && (!r.dueDate || new Date(r.dueDate) >= today);
 const isPast     = (r) => !r.completed && r.dueDate && new Date(r.dueDate) < today;
 const isDone     = (r) => r.completed;
-
-const hasReminderBridge = () =>
-    typeof window !== "undefined" &&
-    window.ReminderBridge &&
-    typeof window.ReminderBridge.scheduleReminder === "function" &&
-    typeof window.ReminderBridge.cancelReminder === "function";
 
 const hasBrowserNotifications = () =>
     typeof window !== "undefined" && "Notification" in window;
