@@ -5,8 +5,18 @@
     "description": "The skeleton application for the Laravel framework.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./packages/evorq/nativephp-qmra-reminders",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "require": {
         "php": "^8.2",
+        "evorq/nativephp-qmra-reminders": "@dev",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.3",

@@ -1,0 +1,19 @@
+{
+    "namespace": "QmraReminders",
+    "android": {
+        "permissions": [
+            "android.permission.POST_NOTIFICATIONS",
+            "android.permission.WAKE_LOCK",
+            "android.permission.VIBRATE"
+        ],
+        "receivers": [
+            {
+                "name": "com.evorq.qmra.reminders.ReminderAlarmReceiver",
+                "exported": false
+            }
+        ]
+    },
+    "hooks": {
+        "post_compile": "nativephp:qmra-reminders:patch-webview"
+    }
+}

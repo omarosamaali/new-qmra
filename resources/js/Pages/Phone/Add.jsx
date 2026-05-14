@@ -1,5 +1,7 @@
 import { Head, router } from "@inertiajs/react";
+import { useEffect } from "react";
 import { useLanguage } from "../../utils/language";
+import { requestWebNotificationPermissionIfPossible } from "../../utils/nativeReminders";
 
 const BackIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-9 h-9">
@@ -44,6 +46,10 @@ const options = [
 
 export default function Add() {
     const { isAr, t } = useLanguage();
+
+    useEffect(() => {
+        requestWebNotificationPermissionIfPossible();
+    }, []);
 
     return (
         <>

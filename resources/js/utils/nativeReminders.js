@@ -8,6 +8,21 @@ export const hasReminderBridge = () =>
     typeof window.ReminderBridge.scheduleReminder === "function" &&
     typeof window.ReminderBridge.cancelReminder === "function";
 
+const hasBrowserNotifications = () =>
+    typeof window !== "undefined" && "Notification" in window;
+
+/**
+ * Web fallback only: APK uses ReminderBridge (AlarmManager), not the Web Notification API.
+ */
+export async function requestWebNotificationPermissionIfPossible() {
+    if (hasReminderBridge()) return true;
+    if (!hasBrowserNotifications()) return false;
+    if (Notification.permission === "granted") return true;
+    if (Notification.permission === "denied") return false;
+    const result = await Notification.requestPermission();
+    return result === "granted";
+}
+
 const atNineLocal = (dateStr) => {
     if (!dateStr) return null;
     const d = new Date(`${dateStr}T09:00:00`);

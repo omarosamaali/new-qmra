@@ -1,0 +1,22 @@
+{
+    "name": "evorq/nativephp-qmra-reminders",
+    "description": "NativePHP Android plugin: local reminder notifications (ReminderBridge)",
+    "version": "1.0.0",
+    "type": "nativephp-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Evorq\\NativePhpQmraReminders\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Evorq\\NativePhpQmraReminders\\QmraRemindersServiceProvider"
+            ]
+        }
+    }
+}
