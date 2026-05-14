@@ -37,15 +37,15 @@ class DatabaseSeeder extends Seeder
             ['name_ar' => 'مضخة المياه',            'name_en' => 'Water Pump',              'icon' => '💧'],
             // ── سوائل
             ['name_ar' => 'سائل التبريد',           'name_en' => 'Coolant',                 'icon' => '🌡️'],
-            ['name_ar' => 'سائل الفرامل',           'name_en' => 'Brake Fluid',             'icon' => '🛑'],
+            ['name_ar' => 'سائل الفرامل',           'name_en' => 'Brake Fluid',             'icon' => '💧'],
             ['name_ar' => 'سائل الدركسيون',         'name_en' => 'Power Steering Fluid',    'icon' => '🔄'],
             ['name_ar' => 'سائل ناقل الحركة',       'name_en' => 'Transmission Fluid',      'icon' => '⚙️'],
             ['name_ar' => 'زيت التفاضلي الأمامي',   'name_en' => 'Front Differential Oil',  'icon' => '🔧'],
             ['name_ar' => 'زيت التفاضلي الخلفي',    'name_en' => 'Rear Differential Oil',   'icon' => '🔧'],
             ['name_ar' => 'سائل نافورة الزجاج',     'name_en' => 'Washer Fluid',            'icon' => '🚿'],
             // ── نظام الفرامل والإطارات
-            ['name_ar' => 'الفرامل الأمامية',       'name_en' => 'Front Brakes',            'icon' => '🛑'],
-            ['name_ar' => 'الفرامل الخلفية',        'name_en' => 'Rear Brakes',             'icon' => '🛑'],
+            ['name_ar' => 'الفرامل الأمامية',       'name_en' => 'Front Brakes',            'icon' => '🛞'],
+            ['name_ar' => 'الفرامل الخلفية',        'name_en' => 'Rear Brakes',             'icon' => '🛞'],
             ['name_ar' => 'الإطارات',               'name_en' => 'Tires',                   'icon' => '🔘'],
             ['name_ar' => 'ضبط الزوايا',            'name_en' => 'Wheel Alignment',         'icon' => '📐'],
             ['name_ar' => 'موازنة الإطارات',        'name_en' => 'Wheel Balancing',         'icon' => '⚖️'],

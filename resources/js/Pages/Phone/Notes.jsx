@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Head, router } from "@inertiajs/react";
+import { parseYmdHmLocal, parseYmdLocal } from "../../utils/datetime";
 
 const BackIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-9 h-9">
@@ -33,7 +34,10 @@ const COLORS = [
 
 const formatDate = (iso) => {
     if (!iso) return "";
-    const d = new Date(iso);
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(String(iso))
+        ? parseYmdLocal(String(iso))
+        : new Date(iso);
+    if (!d || Number.isNaN(d.getTime())) return "";
     return d.toLocaleDateString("ar-SA-u-nu-latn", { year: "numeric", month: "short", day: "numeric" });
 };
 
@@ -133,7 +137,8 @@ const armReminder = (key, title, body, date, time) => {
         delete window._qNoteAlarms[key];
     }
 
-    const fireAt = new Date(`${date}T${time}`);
+    const fireAt = parseYmdHmLocal(date, time);
+    if (!fireAt || Number.isNaN(fireAt.getTime())) return;
     const delay  = fireAt.getTime() - Date.now();
     if (delay <= 0) { removeReminderFromStorage(key); return; }
 
@@ -297,8 +302,7 @@ export default function Notes({ notes = [] }) {
                         </div>
                     </div>
 
-                    <div className="fixed left-1/2 -translate-x-1/2 flex justify-center pointer-events-none"
-                        style={{ width: "100%", maxWidth: "384px", bottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}>
+                    <div className="fixed left-1/2 -translate-x-1/2 flex justify-center pointer-events-none w-full max-w-sm bottom-fab-safe">
                         <button onClick={openAdd}
                             className="pointer-events-auto w-14 h-14 rounded-full bg-[#800000] text-white shadow-xl flex items-center justify-center active:opacity-80 transition-opacity">
                             <PlusIcon />

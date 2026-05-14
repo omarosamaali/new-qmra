@@ -8,7 +8,9 @@ use App\Models\Reminder;
 use App\Models\Vehicle;
 use App\Models\VehicleService;
 use App\Models\Warranty;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class HomeController extends Controller
@@ -35,6 +37,7 @@ class HomeController extends Controller
                 'linkCode'             => $v->link_code,
                 'registrationExpiry'   => $v->registration_expiry?->toDateString(),
                 'insuranceExpiry'      => $v->insurance_expiry?->toDateString(),
+                'notes'                => $v->notes,
             ]);
 
         $services = collect([
@@ -43,7 +46,7 @@ class HomeController extends Controller
             ['id' =>  3, 'nameAr' => 'فلتر الوقود',           'nameEn' => 'Fuel Filter',        'icon' => '⛽'],
             ['id' =>  4, 'nameAr' => 'فلتر الكابينة',         'nameEn' => 'Cabin Filter',       'icon' => '🌬️'],
             ['id' =>  5, 'nameAr' => 'البواجي',               'nameEn' => 'Spark Plugs',        'icon' => '⚡'],
-            ['id' =>  6, 'nameAr' => 'فحص الفرامل',           'nameEn' => 'Brake Inspection',  'icon' => '🛑'],
+            ['id' =>  6, 'nameAr' => 'فحص الفرامل',           'nameEn' => 'Brake Inspection',  'icon' => '🛞'],
             ['id' =>  7, 'nameAr' => 'تبديل الإطارات',        'nameEn' => 'Tire Rotation',      'icon' => '🔄'],
             ['id' =>  8, 'nameAr' => 'ضبط الإطارات',          'nameEn' => 'Wheel Alignment',   'icon' => '🎯'],
             ['id' =>  9, 'nameAr' => 'موازنة الإطارات',       'nameEn' => 'Wheel Balancing',   'icon' => '⚖️'],
@@ -97,6 +100,46 @@ class HomeController extends Controller
 
         $notesCount = Note::where('user_id', $userId)->count();
 
+        $now = Carbon::now();
+        $upcomingNoteReminders = Note::where('user_id', $userId)
+            ->whereNotNull('reminder_date')
+            ->orderBy('reminder_date')
+            ->orderBy('reminder_time')
+            ->get()
+            ->filter(function (Note $n) use ($now) {
+                $timeRaw = $n->reminder_time;
+                if ($timeRaw) {
+                    $t = is_string($timeRaw)
+                        ? substr($timeRaw, 0, 5)
+                        : $timeRaw->format('H:i');
+                    $due = Carbon::parse($n->reminder_date->toDateString().' '.$t.':00');
+
+                    return $due->greaterThanOrEqualTo($now);
+                }
+
+                return $n->reminder_date->copy()->startOfDay()->greaterThanOrEqualTo($now->copy()->startOfDay());
+            })
+            ->take(16)
+            ->values()
+            ->map(function (Note $n) {
+                $plain = trim(strip_tags((string) ($n->content ?? '')));
+                $title = ($n->title !== '' && $n->title !== null)
+                    ? $n->title
+                    : (Str::limit($plain, 48) ?: 'ملاحظة');
+
+                $timeStr = $n->reminder_time
+                    ? (is_string($n->reminder_time) ? substr($n->reminder_time, 0, 5) : $n->reminder_time->format('H:i'))
+                    : null;
+
+                return [
+                    'id'      => (int) $n->id,
+                    'title'   => $title,
+                    'snippet' => $plain !== '' ? Str::limit($plain, 100) : '',
+                    'dueDate' => $n->reminder_date->toDateString(),
+                    'dueTime' => $timeStr,
+                ];
+            });
+
         $vehicleIds = $vehicles->pluck('id');
         $vehicleServicesCount = VehicleService::whereIn('vehicle_id', $vehicleIds)->count();
 
@@ -110,6 +153,17 @@ class HomeController extends Controller
             'addons_count' => 0,
         ]);
 
-        return Inertia::render('Home', compact('vehicles','services','reminders','records','warranties','vehicleServicesCount','vehicleServices','subscription','notesCount'));
+        return Inertia::render('Home', compact(
+            'vehicles',
+            'services',
+            'reminders',
+            'records',
+            'warranties',
+            'vehicleServicesCount',
+            'vehicleServices',
+            'subscription',
+            'notesCount',
+            'upcomingNoteReminders',
+        ));
     }
 }

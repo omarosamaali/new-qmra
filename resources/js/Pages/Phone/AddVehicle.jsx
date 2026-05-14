@@ -84,7 +84,7 @@ const StepIndicator = ({ current }) => (
 const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#800000] placeholder:text-gray-400";
 const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
 
-const StepInfo = ({ brand, model, setBrand, setModel, yearRef, plateRef }) => {
+const StepInfo = ({ brand, model, setBrand, setModel, yearRef, plateRef, onClearHint }) => {
     const brandObj = brandsData.find(b => b.en === brand);
     const models   = brandObj?.models ?? [];
     return (
@@ -92,14 +92,14 @@ const StepInfo = ({ brand, model, setBrand, setModel, yearRef, plateRef }) => {
             <h2 className="font-bold text-gray-900 text-lg mb-2">معلومات المركبة</h2>
             <div>
                 <label className={labelClass}>الشركة المصنّعة <span className="text-[#800000]">*</span></label>
-                <select value={brand} onChange={e => { setBrand(e.target.value); setModel(""); }} className={inputClass}>
+                <select value={brand} onChange={e => { onClearHint?.(); setBrand(e.target.value); setModel(""); }} className={inputClass}>
                     <option value="">اختر الشركة</option>
                     {brandsData.map(b => <option key={b.en} value={b.en}>{b.ar}</option>)}
                 </select>
             </div>
             <div>
                 <label className={labelClass}>الموديل <span className="text-[#800000]">*</span></label>
-                <select value={model} onChange={e => setModel(e.target.value)} disabled={!brand} className={`${inputClass} disabled:opacity-50`}>
+                <select value={model} onChange={e => { onClearHint?.(); setModel(e.target.value); }} disabled={!brand} className={`${inputClass} disabled:opacity-50`}>
                     <option value="">{brand ? "اختر الموديل" : "اختر الشركة أولاً"}</option>
                     {models.map(m => <option key={m.en} value={m.en}>{m.ar}</option>)}
                 </select>
@@ -114,6 +114,7 @@ const StepInfo = ({ brand, model, setBrand, setModel, yearRef, plateRef }) => {
                     placeholder="مثال: 2021"
                     maxLength={4}
                     onChange={e => {
+                        onClearHint?.();
                         const el = e.target;
                         el.value = el.value.replace(/\D/g, "").slice(0, 4);
                     }}
@@ -122,13 +123,13 @@ const StepInfo = ({ brand, model, setBrand, setModel, yearRef, plateRef }) => {
             </div>
             <div>
                 <label className={labelClass}>رقم اللوحة <span className="text-[#800000]">*</span></label>
-                <input ref={plateRef} type="text" defaultValue="" placeholder="مثال: أ ب ج 1234" className={inputClass} />
+                <input ref={plateRef} type="text" defaultValue="" placeholder="مثال: أ ب ج 1234" className={inputClass} onInput={() => onClearHint?.()} />
             </div>
         </div>
     );
 };
 
-const StepSettings = ({ unit, setUnit, kmRef, regExpiryRef, insExpiryRef, notesRef }) => (
+const StepSettings = ({ unit, setUnit, kmRef, regExpiryRef, insExpiryRef, notesRef, onKmInput }) => (
     <div className="space-y-4">
         <h2 className="font-bold text-gray-900 text-lg mb-2">إعدادات المركبة</h2>
 
@@ -160,7 +161,7 @@ const StepSettings = ({ unit, setUnit, kmRef, regExpiryRef, insExpiryRef, notesR
                 <span className="text-[#800000]"> *</span>
             </label>
             <div className="relative">
-                <input ref={kmRef} type="number" defaultValue="" placeholder="مثال: 85000" className={inputClass} />
+                <input ref={kmRef} type="number" defaultValue="" placeholder="مثال: 85000" className={inputClass} onInput={() => onKmInput?.()} />
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs text-gray-400">{odometerSuffix(unit, true)}</span>
             </div>
         </div>
@@ -191,11 +192,18 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
     const [unit, setUnit]         = useState("km");
     const [submitting, setSubmitting] = useState(false);
 
+    const [step0Hint, setStep0Hint]   = useState("");
+    const [kmBump, setKmBump]         = useState(0);
+
     useEffect(() => {
         if (!errors || Object.keys(errors).length === 0) return;
         if (errors.plate_number || errors.brand || errors.year) setStep(0);
         else if (errors.km) setStep(1);
     }, [errors]);
+
+    useEffect(() => {
+        setStep0Hint("");
+    }, [brand, model]);
 
     const yearRef       = useRef(null);
     const plateRef      = useRef(null);
@@ -207,15 +215,49 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
     const savedYearRef  = useRef("");
     const savedPlateRef = useRef("");
 
-    const canNext = () => {
-        if (step === 0) return !!(brand && model);
+    const maxModelYear = () => new Date().getFullYear() + 2;
+
+    const validateStep0 = () => {
+        if (!brand || !model) {
+            setStep0Hint("اختر الشركة المصنّعة والموديل.");
+            return false;
+        }
+        const rawYear = (yearRef.current?.value || "").replace(/\D/g, "").slice(0, 4);
+        if (rawYear.length !== 4) {
+            setStep0Hint("أدخل سنة الصنع بأربعة أرقام.");
+            return false;
+        }
+        const yi = parseInt(rawYear, 10);
+        const maxY = maxModelYear();
+        if (yi < 1000 || yi > maxY) {
+            setStep0Hint(`سنة الصنع يجب أن تكون بين 1000 و ${maxY}.`);
+            return false;
+        }
+        const plate = (plateRef.current?.value || "").trim();
+        if (!plate) {
+            setStep0Hint("أدخل رقم اللوحة.");
+            return false;
+        }
+        savedYearRef.current  = rawYear;
+        savedPlateRef.current = plate;
+        setStep0Hint("");
         return true;
     };
 
-    const goNext = () => {
-        savedYearRef.current  = yearRef.current?.value        || "";
-        savedPlateRef.current = plateRef.current?.value?.trim() || "";
-        setStep(s => s + 1);
+    const canSubmitStep1 = () => {
+        void kmBump;
+        const raw = kmRef.current?.value?.trim() ?? "";
+        if (raw === "") return false;
+        const n = Number(raw);
+        return !Number.isNaN(n) && n >= 0;
+    };
+
+    const tryAdvanceOrSubmit = () => {
+        if (step < 1) {
+            if (validateStep0()) setStep(1);
+            return;
+        }
+        handleSubmit();
     };
 
     const atLimit = carsLimit > 0 && vehicleCount >= carsLimit;
@@ -313,12 +355,18 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
                                             })}
                                         </div>
                                     )}
+                                    {step === 0 && step0Hint && (
+                                        <p className="mb-3 text-sm text-red-600 text-center" role="status">
+                                            {step0Hint}
+                                        </p>
+                                    )}
                                     <StepIndicator current={step} />
                                     {step === 0 && (
                                         <StepInfo
                                             brand={brand} model={model}
                                             setBrand={setBrand} setModel={setModel}
                                             yearRef={yearRef} plateRef={plateRef}
+                                            onClearHint={() => setStep0Hint("")}
                                         />
                                     )}
                                     {step === 1 && (
@@ -326,6 +374,7 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
                                             unit={unit} setUnit={setUnit}
                                             kmRef={kmRef} regExpiryRef={regExpiryRef}
                                             insExpiryRef={insExpiryRef} notesRef={notesRef}
+                                            onKmInput={() => setKmBump((b) => b + 1)}
                                         />
                                     )}
                                 </div>
@@ -333,10 +382,10 @@ export default function AddVehicle({ vehicleCount = 0, carsLimit = 1 }) {
                             <div className="fixed bottom-0 right-0 left-0 flex justify-center pointer-events-none">
                                 <div className="w-full max-w-sm px-4 pb-8 pointer-events-auto safe-bottom">
                                     <button
-                                        onClick={() => step < 1 ? goNext() : handleSubmit()}
-                                        disabled={!canNext() || submitting}
+                                        onClick={tryAdvanceOrSubmit}
+                                        disabled={submitting || (step === 1 && !canSubmitStep1())}
                                         className={`w-full py-4 rounded-2xl font-bold text-sm transition-all duration-150 shadow-lg ${
-                                            canNext() && !submitting ? "bg-[#800000] text-white active:opacity-90" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                            !submitting && (step === 0 || canSubmitStep1()) ? "bg-[#800000] text-white active:opacity-90" : "bg-gray-200 text-gray-400 cursor-not-allowed"
                                         }`}
                                     >
                                         {step < 1 ? "التالي" : submitting ? "جاري الإضافة..." : "إضافة المركبة"}

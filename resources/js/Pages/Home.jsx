@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
 import axios from "axios";
 import jsQR from "jsqr";
@@ -7,10 +7,13 @@ import { brandsData } from "../Components/BrandsData";
 import { logoDark, logoLight, iconFav } from "../brand/assets";
 import { normalizeOdometerUnit, odometerSuffix } from "../utils/units";
 import { hasReminderBridge, reconcileExpiryAlarms } from "../utils/nativeReminders";
+import { enrichServices, resolveServiceIcon } from "../data/serviceCatalog";
+import { parseYmdLocal, startOfLocalToday, dayDiffFromLocalToday } from "../utils/datetime";
 // ─── Menu Drawer ──────────────────────────────────────────────────────────────
 
 const menuItems = [
     { icon: "📝", ar: "المفكرة",           en: "Notes",           route: "/notes" },
+    { icon: "🔔", ar: "التذكيرات",        en: "Reminders",       route: "/reminders" },
     { icon: "📋", ar: "السجلات",          en: "Records",         route: "/records" },
     { icon: "💳", ar: "الاشتراكات",       en: "Subscriptions",   route: "/subscriptions" },
     { icon: "💬", ar: "تواصل معنا",       en: "Contact Us",      route: "/contact" },
@@ -41,13 +44,13 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
             />
             <div
                 dir={isAr ? "rtl" : "ltr"}
-                className={`relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl transition-transform duration-300 ease-out ${
+                className={`relative w-72 max-w-[85vw] bg-white drawer-panel-safe flex flex-col overflow-hidden shadow-2xl transition-transform duration-300 ease-out ${
                     visible ? "translate-x-0" : isAr ? "translate-x-full" : "-translate-x-full"
                 }`}
             >
 
-                {/* Header - covers top safe area */}
-                <div className="px-5 pb-5 bg-black" style={{ paddingTop: "calc(env(safe-area-inset-top) + 2rem)" }}>
+                {/* Header — status bar / notch (WebView often reports inset-top as 0) */}
+                <div className="px-5 pb-5 bg-black shrink-0 drawer-header-safe">
                     <img src={logoLight} alt="قمرة" className="h-12 object-contain mb-3" />
                     <p className="text-white/80 text-xs">
                         {isAr ? "صديقك لإدارة مركبتك بذكاء" : "Your smart car friend"}
@@ -55,7 +58,7 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
                 </div>
 
                 {/* Language toggle */}
-                <div className="px-5 py-3 border-b border-gray-100">
+                <div className="px-5 py-3 border-b border-gray-100 shrink-0">
                     <p className="text-xs text-gray-400 mb-2">
                         {isAr ? "اللغة" : "Language"}
                     </p>
@@ -84,7 +87,7 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
                 </div>
 
                 {/* Menu items */}
-                <div className="flex-1 overflow-y-auto py-2">
+                <div className="flex-1 min-h-0 overflow-y-auto py-2 no-scrollbar">
                     {menuItems.map((item) => (
                         <button
                             key={item.route}
@@ -101,8 +104,8 @@ const MenuDrawer = ({ onClose, lang, setLang }) => {
                     ))}
                 </div>
 
-                {/* Footer - covers bottom safe area */}
-                <div className="px-5 pt-4 border-t border-gray-100" style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1rem)" }}>
+                {/* Footer — system navigation bar */}
+                <div className="px-5 pt-4 border-t border-gray-100 shrink-0 drawer-footer-safe">
                     <button
                         onClick={() => { handleClose(); setTimeout(() => router.post("/logout"), 300); }}
                         className="w-full flex items-center gap-3 py-2 text-gray-400"
@@ -182,6 +185,7 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
         unit:               normalizeOdometerUnit(vehicle.unit),
         registrationExpiry: vehicle.registrationExpiry || "",
         insuranceExpiry:    vehicle.insuranceExpiry    || "",
+        notes:              vehicle.notes ?? "",
     });
     const [visible, setVisible] = useState(false);
 
@@ -196,7 +200,7 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
         const mObj   = bObj?.models.find(m => m.en === model);
         const nameAr = `${bObj?.ar ?? brand} ${mObj?.ar ?? model}`.trim() || vehicle.nameAr;
         const nameEn = `${brand} ${model}`.trim() || vehicle.nameEn;
-        onSave({ ...vehicle, ...form, brand, nameAr, nameEn, year: Number(form.year), km: Number(form.km), unit: normalizeOdometerUnit(form.unit) });
+        onSave({ ...vehicle, ...form, brand, nameAr, nameEn, year: Number(form.year), km: Number(form.km), unit: normalizeOdometerUnit(form.unit), notes: form.notes?.trim() || null });
         handleClose();
     };
 
@@ -290,6 +294,17 @@ const EditVehicleSheet = ({ vehicle, onClose, onSave, t, isAr }) => {
                         <input type="date" value={form.insuranceExpiry} onChange={e => setForm(f => ({ ...f, insuranceExpiry: e.target.value }))} className={inputClass} />
                     </div>
 
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("ملاحظات (اختياري)", "Notes (optional)")}</label>
+                        <textarea
+                            value={form.notes}
+                            onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                            rows={3}
+                            placeholder={isAr ? "أي ملاحظات عن المركبة…" : "Any notes about the vehicle…"}
+                            className={`${inputClass} resize-none`}
+                        />
+                    </div>
+
                     <button onClick={handleSave} className="w-full bg-[#800000] text-white rounded-xl py-3.5 font-semibold text-sm active:opacity-90 transition-opacity">
                         {t("حفظ التعديلات", "Save Changes")}
                     </button>
@@ -378,18 +393,27 @@ const VehicleViewSheet = ({ vehicle, addonsLimit, linkedCount, onClose, onLinked
 
     const startCamera = async () => {
         setError("");
+        if (!navigator.mediaDevices?.getUserMedia) {
+            setError("تعذّر فتح الكاميرا من هذا العرض. أدخل الرمز يدوياً.");
+            return;
+        }
         try {
-            if (navigator.permissions) {
-                const perm = await navigator.permissions.query({ name: "camera" }).catch(() => null);
-                if (perm && perm.state === "denied") {
-                    setError("الكاميرا محظورة. افتح إعدادات التطبيق وامنح صلاحية الكاميرا.");
-                    return;
-                }
+            // لا تستخدم permissions.query قبل getUserMedia: في WebView أندرويد قد يعيد
+            // "denied" قبل أن يُسأل المستخدم، فيُمنع ظهور نافذة طلب الإذن.
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: "environment" } },
+                    audio: false,
+                });
+            } catch {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
             }
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
             streamRef.current = stream;
-            videoRef.current.srcObject = stream;
-            await videoRef.current.play();
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                await videoRef.current.play();
+            }
             setScanning(true);
             scanFrame();
         } catch (err) {
@@ -580,7 +604,8 @@ const formatKm = (km, unit = "km", isAr = true) => {
 
 const formatDate = (dateStr) => {
     if (!dateStr) return "";
-    const date = new Date(dateStr);
+    const date = parseYmdLocal(dateStr);
+    if (!date) return "";
     return date.toLocaleDateString("ar-SA-u-nu-latn", { day: "numeric", month: "short" });
 };
 
@@ -599,7 +624,11 @@ const StatCard = ({ label, value, onClick }) => (
 const  VehicleCard = ({ vehicle, reminders = [], isSelected, onClick, onEdit, onDelete, onView, isAr }) => {
     const vehicleReminders = reminders
         .filter((r) => r.vehicleId === vehicle.id && !r.completed)
-        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+        .sort((a, b) => {
+            const da = parseYmdLocal(a.dueDate)?.getTime() ?? 0;
+            const db = parseYmdLocal(b.dueDate)?.getTime() ?? 0;
+            return da - db;
+        })
         .slice(0, 5);
 
     const VIcon = vehicle.type === "suv" ? SuvIcon : CarIcon;
@@ -703,12 +732,14 @@ const ServiceChip = ({ service, isSelected, onClick, isAr }) => (
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function Home({ vehicles = [], services = [], reminders = [], records = [], warranties = [], vehicleServicesCount = 0, vehicleServices = [], subscription = {}, notesCount = 0 }) {
+export default function Home({ vehicles = [], services = [], reminders = [], records = [], warranties = [], vehicleServicesCount = 0, vehicleServices = [], subscription = {}, notesCount = 0, upcomingNoteReminders = [] }) {
     const [localVehicles, setLocalVehicles] = useState(vehicles);
     const expiryAlarmKeysRef = useRef(new Set());
     useEffect(() => { setLocalVehicles(vehicles); }, [vehicles]);
 
     const { lang, setLang, isAr, t } = useLanguage();
+
+    const servicesDisplay = useMemo(() => enrichServices(services), [services]);
 
     // APK: schedule real alarms via Android ReminderBridge (see nativeReminders.js)
     useEffect(() => {
@@ -732,7 +763,7 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
     useEffect(() => {
         if (hasReminderBridge()) return;
         if (!("Notification" in window)) return;
-        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const today0 = startOfLocalToday();
         const notify = (title, body) => {
             if (Notification.permission === "granted") {
                 new Notification(title, { body, icon: iconFav });
@@ -747,8 +778,9 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
             const check = (dateStr, labelAr, labelEn) => {
                 if (!dateStr) return;
                 const label = isAr ? labelAr : labelEn;
-                const exp = new Date(dateStr);
-                const diff = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+                const exp = parseYmdLocal(dateStr);
+                if (!exp) return;
+                const diff = Math.ceil((exp.getTime() - today0.getTime()) / (1000 * 60 * 60 * 24));
                 if (diff < 0)       notify(`🚨 ${label} — ${isAr ? "منتهي" : "expired"}`, `${name} — ${isAr ? `انتهى منذ ${Math.abs(diff)} يوم` : `${Math.abs(diff)} days ago`}`);
                 else if (diff <= 7) notify(`⚠️ ${label} — ${isAr ? "قريب الانتهاء" : "expiring soon"}`, `${name} — ${isAr ? `ينتهي خلال ${diff} يوم` : `in ${diff} days`}`);
             };
@@ -792,7 +824,7 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
         ? vehicleServices.filter((vs) => vs.vehicleId === selectedVehicleId).map((vs) => vs.serviceId)
         : vehicleServices.map((vs) => vs.serviceId);
 
-    const displayedServices = services.filter((s) => vehicleServiceIds.includes(s.id));
+    const displayedServices = servicesDisplay.filter((s) => vehicleServiceIds.includes(s.id));
 
     const effectiveServiceId = displayedServices.find((s) => s.id === selectedServiceId)
         ? selectedServiceId
@@ -803,26 +835,44 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
     // Expiry alerts (within 30 days or already expired)
     const expiryAlerts = localVehicles.flatMap(v => {
         const alerts = [];
-        const today = new Date(); today.setHours(0,0,0,0);
-        const check = (dateStr, label) => {
+        const today0 = startOfLocalToday();
+        const check = (dateStr, label, kind) => {
             if (!dateStr) return;
-            const exp = new Date(dateStr);
-            const diff = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
-            if (diff <= 30) alerts.push({ vehicleName: isAr ? v.nameAr : v.nameEn, label, diff, dateStr });
+            const exp = parseYmdLocal(dateStr);
+            if (!exp) return;
+            const diff = Math.ceil((exp.getTime() - today0.getTime()) / (1000 * 60 * 60 * 24));
+            if (diff <= 30) alerts.push({ vehicleName: isAr ? v.nameAr : v.nameEn, label, diff, dateStr, kind });
         };
-        check(v.registrationExpiry, isAr ? "تسجيل المركبة" : "Registration");
-        check(v.insuranceExpiry,    isAr ? "التأمين"        : "Insurance");
+        check(v.registrationExpiry, isAr ? "تسجيل المركبة" : "Registration", "registration");
+        check(v.insuranceExpiry,    isAr ? "التأمين"        : "Insurance", "insurance");
         return alerts;
     });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = startOfLocalToday();
 
-    const upcomingReminders = reminders
-        .filter((r) => !r.completed && (!r.dueDate || new Date(r.dueDate) >= today))
+    const upcomingVehicleReminders = reminders
+        .filter((r) => !r.completed && (!r.dueDate || (parseYmdLocal(r.dueDate)?.getTime() ?? 0) >= today.getTime()))
         .filter((r) => !selectedVehicleId || r.vehicleId === selectedVehicleId)
-        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-        .slice(0, 5);
+        .map((r) => ({
+            kind: "reminder",
+            sortKey: r.dueDate ? `${r.dueDate}T09:00:00` : "9999-12-31T23:59:59",
+            reminder: r,
+        }));
+
+    const upcomingNotebookAlerts = (upcomingNoteReminders || []).map((n) => ({
+        kind: "note",
+        sortKey: `${n.dueDate}T${n.dueTime && n.dueTime.length >= 5 ? n.dueTime.slice(0, 5) : "23:59"}:59`,
+        note: n,
+    }));
+
+    const sortKeyTs = (k) => {
+        const t = new Date(k).getTime();
+        return Number.isNaN(t) ? Number.MAX_SAFE_INTEGER : t;
+    };
+
+    const combinedUpcoming = [...upcomingNotebookAlerts, ...upcomingVehicleReminders]
+        .sort((a, b) => sortKeyTs(a.sortKey) - sortKeyTs(b.sortKey))
+        .slice(0, 8);
 
     const displayedWarranties = selectedVehicleId
         ? warranties.filter((w) => w.vehicleId === selectedVehicleId)
@@ -845,7 +895,7 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
                 <div className="w-full max-w-sm min-h-screen flex flex-col bg-gray-100">
 
                     {/* Header */}
-                    <div className="bg-white px-4 pb-4 flex items-center justify-between sticky top-0 z-20 shadow-sm safe-header" style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.5rem)" }}>
+                    <div className="bg-white px-4 pb-4 flex items-center justify-between sticky top-0 z-20 shadow-sm safe-header">
                         <button
                             onClick={() => setMenuOpen(true)}
                             className="w-10 h-10 flex flex-col items-center justify-center gap-1.5 active:opacity-70 transition-opacity"
@@ -870,7 +920,7 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
 
                     {/* Scrollable content */}
                     <div className="flex-1 overflow-y-auto no-scrollbar">
-                        <div className="px-4 pt-4 space-y-5" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 1.5rem), 2.5rem)" }}>
+                        <div className="px-4 pt-4 space-y-5 pb-safe-nav">
 
                             {/* Stats */}
                             <div className="grid grid-cols-2 gap-2.5">
@@ -1005,7 +1055,9 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
                                     {expiryAlerts.map((a, i) => (
                                         <div key={`exp-${i}`} className={`rounded-2xl px-4 py-3 flex items-center gap-3 ${a.diff < 0 ? "bg-red-50 border border-red-200" : "bg-amber-50 border border-amber-200"}`}
                                             dir={isAr ? "rtl" : "ltr"}>
-                                            <span className="text-xl shrink-0">{a.diff < 0 ? "🚨" : "⚠️"}</span>
+                                            <span className="text-xl shrink-0">
+                                                {a.diff < 0 ? "🚨" : a.kind === "registration" ? "📋" : "🛡️"}
+                                            </span>
                                             <div className="flex-1 min-w-0">
                                                 <p className={`text-sm font-bold ${a.diff < 0 ? "text-red-700" : "text-amber-700"}`}>
                                                     {a.label} — {a.vehicleName}
@@ -1022,24 +1074,67 @@ export default function Home({ vehicles = [], services = [], reminders = [], rec
                                         </div>
                                     ))}
 
-                                    {upcomingReminders.length === 0 && expiryAlerts.length === 0 && (
+                                    {combinedUpcoming.length === 0 && expiryAlerts.length === 0 && (
                                         <div className="bg-white rounded-2xl p-8 text-center">
                                             <p className="text-gray-400 text-sm">{t("لا توجد تنبيهات قادمة", "No upcoming reminders")}</p>
                                         </div>
                                     )}
 
-                                    {upcomingReminders.map((r) => {
+                                    {combinedUpcoming.map((row) => {
+                                        if (row.kind === "note") {
+                                            const n = row.note;
+                                            const diff = dayDiffFromLocalToday(n.dueDate);
+                                            const urgent = diff !== null && diff <= 7;
+                                            return (
+                                                <button
+                                                    key={`note-${n.id}`}
+                                                    type="button"
+                                                    onClick={() => router.get("/notes")}
+                                                    className={`w-full bg-white rounded-2xl px-4 py-3 shadow-sm border-r-4 flex items-center gap-3 text-start active:opacity-90 transition-opacity ${
+                                                        urgent ? "border-amber-400" : "border-[#800000]"
+                                                    }`}
+                                                    dir={isAr ? "rtl" : "ltr"}
+                                                >
+                                                    <span className="text-xl leading-none shrink-0">📝</span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-semibold text-gray-900 text-sm">{n.title}</p>
+                                                        <p className="text-xs text-gray-400 mt-0.5">
+                                                            {t("من المفكرة", "Notebook")}
+                                                            {n.snippet ? ` · ${n.snippet}` : ""}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-end shrink-0">
+                                                        {diff !== null && (
+                                                            <p className={`text-xs font-bold ${urgent ? "text-amber-600" : "text-[#800000]"}`}>
+                                                                {diff === 0
+                                                                    ? t("اليوم", "Today")
+                                                                    : diff === 1
+                                                                      ? t("غداً", "Tomorrow")
+                                                                      : isAr
+                                                                        ? `خلال ${diff} يوم`
+                                                                        : `In ${diff}d`}
+                                                            </p>
+                                                        )}
+                                                        <p className="text-xs text-gray-400">
+                                                            {formatDate(n.dueDate)}
+                                                            {n.dueTime ? ` · ${n.dueTime}` : ""}
+                                                        </p>
+                                                    </div>
+                                                </button>
+                                            );
+                                        }
+                                        const r = row.reminder;
                                         const vehicle = localVehicles.find((v) => v.id === r.vehicleId);
-                                        const service = services.find((s) => s.id === r.serviceId);
-                                        const diff = r.dueDate ? Math.ceil((new Date(r.dueDate) - today) / (1000 * 60 * 60 * 24)) : null;
+                                        const reminderIcon = resolveServiceIcon(r.serviceId, r.titleAr);
+                                        const diff = r.dueDate ? dayDiffFromLocalToday(r.dueDate) : null;
                                         const urgent = diff !== null && diff <= 7;
                                         return (
                                             <div
-                                                key={r.id}
+                                                key={`rem-${r.id}`}
                                                 className={`bg-white rounded-2xl px-4 py-3 shadow-sm border-r-4 flex items-center gap-3 ${urgent ? "border-amber-400" : "border-[#800000]"}`}
                                                 dir={isAr ? "rtl" : "ltr"}
                                             >
-                                                <span className="text-xl leading-none shrink-0">{service?.icon ?? "🔔"}</span>
+                                                <span className="text-xl leading-none shrink-0">{reminderIcon}</span>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="font-semibold text-gray-900 text-sm">{r.titleAr}</p>
                                                     <p className="text-xs text-gray-400 mt-0.5">

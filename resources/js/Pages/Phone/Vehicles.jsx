@@ -45,6 +45,7 @@ const EditSheet = ({ vehicle, onClose, onSave }) => {
         year:               String(vehicle.year),
         registrationExpiry: vehicle.registrationExpiry || "",
         insuranceExpiry:    vehicle.insuranceExpiry    || "",
+        notes:              vehicle.notes ?? "",
     });
 
     const selectedBrandObj = brandsData.find(b => b.en === brand);
@@ -62,6 +63,7 @@ const EditSheet = ({ vehicle, onClose, onSave }) => {
             km: Number(form.km),
             year: Number(form.year),
             unit: normalizeOdometerUnit(form.unit),
+            notes: form.notes?.trim() || null,
         });
         onClose();
     };
@@ -138,6 +140,16 @@ const EditSheet = ({ vehicle, onClose, onSave }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">تاريخ انتهاء التأمين</label>
                         <input type="date" value={form.insuranceExpiry} onChange={e => setForm(f => ({ ...f, insuranceExpiry: e.target.value }))} className={inputClass} />
                     </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">ملاحظات (اختياري)</label>
+                        <textarea
+                            value={form.notes}
+                            onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                            rows={3}
+                            placeholder="أي ملاحظات عن المركبة…"
+                            className={`${inputClass} resize-none`}
+                        />
+                    </div>
                     <button onClick={handleSave} className="w-full bg-[#800000] text-white rounded-xl py-3.5 font-semibold text-sm active:opacity-90">
                         حفظ التعديلات
                     </button>
@@ -182,7 +194,7 @@ export default function Vehicles({ vehicles: initVehicles = [] }) {
                     </div>
 
                     <div className="flex-1 overflow-y-auto no-scrollbar">
-                        <div className="px-4 pt-4 space-y-3" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 1.5rem), 2.5rem)" }}>
+                        <div className="px-4 pt-4 space-y-3 pb-safe-nav">
                             {vehicles.length === 0 ? (
                                 <div className="bg-white rounded-2xl p-10 text-center">
                                     <p className="text-gray-400 text-sm">لا توجد مركبات — اضغط + لإضافة مركبة</p>

@@ -2,6 +2,8 @@
  * NativePHP / Android WebView injects ReminderBridge for AlarmManager-based notifications.
  * `window.Notification` in WebView is often missing, disabled, or only works while the app is open.
  */
+import { parseYmdHmLocal } from "./datetime";
+
 export const hasReminderBridge = () =>
     typeof window !== "undefined" &&
     window.ReminderBridge &&

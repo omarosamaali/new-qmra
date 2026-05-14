@@ -189,6 +189,7 @@ Route::get('/api/car/vehicle/{linkCode}', function (string $linkCode) {
         'type' => $vehicle->type,
         'registrationExpiry' => $vehicle->registration_expiry?->toDateString(),
         'insuranceExpiry' => $vehicle->insurance_expiry?->toDateString(),
+        'notes' => $vehicle->notes,
     ]);
 });
 

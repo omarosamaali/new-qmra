@@ -105,6 +105,7 @@ class CloudSync
             'year'                => (int) $vehicle->year,
             'registration_expiry' => $vehicle->registration_expiry?->toDateString(),
             'insurance_expiry'    => $vehicle->insurance_expiry?->toDateString(),
+            'notes'               => $vehicle->notes,
         ];
 
         try {
@@ -191,6 +192,7 @@ class CloudSync
                     'color'               => $v['color']               ?? '#800000',
                     'registration_expiry' => $v['registration_expiry'] ?? null,
                     'insurance_expiry'    => $v['insurance_expiry']    ?? null,
+                    'notes'               => $v['notes']               ?? null,
                     'is_linked'           => (bool) ($v['is_linked']   ?? false),
                     'link_code'           => $v['link_code']           ?? null,
                 ]

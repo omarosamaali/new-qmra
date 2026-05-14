@@ -28,9 +28,8 @@ const EditIcon = () => (
 );
 
 import { hasReminderBridge } from "../../utils/nativeReminders";
-
-const today = new Date();
-today.setHours(0, 0, 0, 0);
+import { useLanguage } from "../../utils/language";
+import { parseYmdLocal, parseYmdHmLocal, startOfLocalToday } from "../../utils/datetime";
 
 const to12h = (time24) => {
     if (!time24) return "";
@@ -39,8 +38,10 @@ const to12h = (time24) => {
     return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${ampm}`;
 };
 
-const isUpcoming = (r) => !r.completed && (!r.dueDate || new Date(r.dueDate) >= today);
-const isPast     = (r) => !r.completed && r.dueDate && new Date(r.dueDate) < today;
+const isUpcoming = (r, todayStart) =>
+    !r.completed && (!r.dueDate || (parseYmdLocal(r.dueDate)?.getTime() ?? 0) >= todayStart.getTime());
+const isPast = (r, todayStart) =>
+    !r.completed && !!r.dueDate && (parseYmdLocal(r.dueDate)?.getTime() ?? 0) < todayStart.getTime();
 const isDone     = (r) => r.completed;
 
 const hasBrowserNotifications = () =>
@@ -56,9 +57,14 @@ export const requestNotificationPermission = async () => {
 
 const parseReminderDateTime = (dueDate, dueTime) => {
     if (!dueDate) return null;
-    const normalizedTime = dueTime && dueTime.length >= 5 ? dueTime.slice(0, 5) : "09:00";
-    const value = new Date(`${dueDate}T${normalizedTime}:00`);
-    return Number.isNaN(value.getTime()) ? null : value;
+    const tm = dueTime && String(dueTime).trim().length >= 5 ? String(dueTime).slice(0, 5) : null;
+    if (!tm) {
+        const d = parseYmdLocal(dueDate);
+        if (!d) return null;
+        d.setHours(23, 59, 0, 0);
+        return d;
+    }
+    return parseYmdHmLocal(dueDate, tm);
 };
 
 // Store browser setTimeout IDs so we can cancel them
@@ -337,6 +343,8 @@ function ReminderModal({ vehicles, reminder, onClose }) {
 }
 
 export default function Reminders({ vehicles = [], reminders = [] }) {
+    const { isAr, t } = useLanguage();
+    const todayStart = startOfLocalToday();
     const [filter, setFilter]             = useState("upcoming");
     const [selectedVehicleId, setSelectedVehicleId] = useState(null);
     const [showModal, setShowModal]       = useState(false);
@@ -344,8 +352,8 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
 
     const filtered = reminders
         .filter((r) => {
-            if (filter === "upcoming") return isUpcoming(r);
-            if (filter === "past")     return isPast(r);
+            if (filter === "upcoming") return isUpcoming(r, todayStart);
+            if (filter === "past")     return isPast(r, todayStart);
             if (filter === "done")     return isDone(r);
             return true;
         })
@@ -353,12 +361,14 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
         .sort((a, b) => {
             if (!a.dueDate) return 1;
             if (!b.dueDate) return -1;
-            if (filter === "past") return new Date(b.dueDate) - new Date(a.dueDate);
-            return new Date(a.dueDate) - new Date(b.dueDate);
+            const da = parseYmdLocal(a.dueDate)?.getTime() ?? 0;
+            const db = parseYmdLocal(b.dueDate)?.getTime() ?? 0;
+            if (filter === "past") return db - da;
+            return da - db;
         });
 
-    const upcomingCount = reminders.filter(isUpcoming).length;
-    const pastCount     = reminders.filter(isPast).length;
+    const upcomingCount = reminders.filter((r) => isUpcoming(r, todayStart)).length;
+    const pastCount     = reminders.filter((r) => isPast(r, todayStart)).length;
     const doneCount     = reminders.filter(isDone).length;
 
     useEffect(() => {
@@ -393,13 +403,18 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
             filter === key ? "bg-[#800000] text-white shadow-sm" : "text-gray-500"
         }`;
 
+    const reminderCountLabel =
+        filtered.length === 1
+            ? t("1 تذكير", "1 reminder")
+            : t(`${filtered.length} تذكير`, `${filtered.length} reminders`);
+
     return (
         <>
-            <Head title="المفكرة - قمرة" />
-            <div className="min-h-screen bg-gray-100 flex justify-center" dir="rtl">
+            <Head title={t("التذكيرات - قمرة", "Reminders - Qamra")} />
+            <div className="min-h-screen bg-gray-100 flex justify-center" dir={isAr ? "rtl" : "ltr"}>
                 <div className="w-full max-w-sm min-h-screen flex flex-col bg-gray-100">
 
-                    {/* Header */}
+                    {/* Header — distinct from free-text Notes (/notes) titled "المفكرة" */}
                     <div className="bg-white sticky top-0 z-20 shadow-sm safe-header">
                         <div className="flex items-center gap-3">
                             <button
@@ -408,7 +423,7 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
                             >
                                 <BackIcon />
                             </button>
-                            <h1 className="font-bold text-gray-900 text-lg flex-1">المفكرة</h1>
+                            <h1 className="font-bold text-gray-900 text-lg flex-1">{t("التذكيرات", "Reminders")}</h1>
                         </div>
                     </div>
 
@@ -426,7 +441,7 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
                     </div>
 
                     <div className="flex-1 overflow-y-auto no-scrollbar">
-                        <div className="px-4 pt-4 space-y-4" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 1.5rem), 2.5rem)" }}>
+                        <div className="px-4 pt-4 space-y-4 pb-safe-nav">
 
                             {/* Vehicle filter */}
                             {vehicles.length > 1 && (
@@ -456,7 +471,7 @@ export default function Reminders({ vehicles = [], reminders = [] }) {
                                 </div>
                             )}
 
-                            <p className="text-xs text-gray-400">{filtered.length} تذكير</p>
+                            <p className="text-xs text-gray-400">{reminderCountLabel}</p>
 
                             {filtered.length === 0 ? (
                                 <div className="bg-white rounded-2xl p-10 text-center space-y-3">

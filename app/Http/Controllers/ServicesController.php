@@ -28,6 +28,7 @@ class ServicesController extends Controller
             'type'        => $v->type,
             'plateNumber' => $v->plate_number,
             'km'          => $v->km,
+            'unit'        => $v->unit ?? 'km',
             'color'       => $v->color,
             'year'        => $v->year,
         ]);
@@ -38,7 +39,7 @@ class ServicesController extends Controller
             ['id' =>  3, 'nameAr' => 'فلتر الوقود',              'nameEn' => 'Fuel Filter',             'icon' => '⛽'],
             ['id' =>  4, 'nameAr' => 'فلتر الكابينة',            'nameEn' => 'Cabin Filter',            'icon' => '🌬️'],
             ['id' =>  5, 'nameAr' => 'البواجي',                  'nameEn' => 'Spark Plugs',             'icon' => '⚡'],
-            ['id' =>  6, 'nameAr' => 'فحص الفرامل',              'nameEn' => 'Brake Inspection',       'icon' => '🛑'],
+            ['id' =>  6, 'nameAr' => 'فحص الفرامل',              'nameEn' => 'Brake Inspection',       'icon' => '🛞'],
             ['id' =>  7, 'nameAr' => 'تبديل الإطارات',           'nameEn' => 'Tire Rotation',           'icon' => '🔄'],
             ['id' =>  8, 'nameAr' => 'ضبط الإطارات',             'nameEn' => 'Wheel Alignment',        'icon' => '🎯'],
             ['id' =>  9, 'nameAr' => 'موازنة الإطارات',          'nameEn' => 'Wheel Balancing',        'icon' => '⚖️'],

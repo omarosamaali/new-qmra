@@ -31,6 +31,7 @@ class VehiclesController extends Controller
             'year'               => (int) $v->year,
             'registrationExpiry' => $v->registration_expiry?->toDateString(),
             'insuranceExpiry'    => $v->insurance_expiry?->toDateString(),
+            'notes'              => $v->notes,
         ]);
         return \Inertia\Inertia::render('Phone/Vehicles', ['vehicles' => $vehicles]);
     }
@@ -68,6 +69,7 @@ class VehiclesController extends Controller
             'image'                 => null,
             'registration_expiry'   => $request->registration_expiry ?: null,
             'insurance_expiry'      => $request->insurance_expiry    ?: null,
+            'notes'                 => $request->filled('notes') ? trim((string) $request->notes) : null,
         ]);
 
         CloudSync::pushVehicle($vehicle, 'post');
@@ -94,6 +96,9 @@ class VehiclesController extends Controller
             'image'                 => $vehicle->image,
             'registration_expiry'   => $request->has('registrationExpiry') ? ($request->registrationExpiry ?: null) : $vehicle->registration_expiry,
             'insurance_expiry'      => $request->has('insuranceExpiry')    ? ($request->insuranceExpiry    ?: null) : $vehicle->insurance_expiry,
+            'notes'                 => $request->has('notes')
+                ? ($request->input('notes') === null || $request->input('notes') === '' ? null : trim((string) $request->input('notes')))
+                : $vehicle->notes,
         ]);
 
         CloudSync::pushVehicle($vehicle->fresh(), 'put');
