@@ -26,6 +26,7 @@ class RemindersController extends Controller
             'brand'       => $v->brand,
             'type'        => $v->type,
             'plateNumber' => $v->plate_number,
+            'unit'        => $v->unit ?? 'km',
             'color'       => $v->color,
         ]);
 

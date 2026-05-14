@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
+import { enrichServices } from "../../data/serviceCatalog";
+import { normalizeOdometerUnit } from "../../utils/units";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -49,7 +51,14 @@ const RECURRENCE_OPTIONS = [
     { value: "20000km", label: "كل 20,000 كم", km: 20000, days: null },
 ];
 
-const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }) => {
+const recurrenceLabel = (o, unit = "km") => {
+    if (!o || !o.km) return o?.label ?? "";
+    return normalizeOdometerUnit(unit) === "mi"
+        ? `كل ${o.km.toLocaleString("en")} ميل`
+        : o.label;
+};
+
+const AddServiceModal = ({ vehicleId, vehicleUnit = "km", allServices, existingServiceIds, onClose }) => {
     const [form, setForm] = useState({ serviceId: "", recurrence: "", notes: "", cost: "" });
     const [submitting, setSubmitting] = useState(false);
 
@@ -63,7 +72,11 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
         const q = new URLSearchParams();
         q.set("vehicle_id", String(vehicleId));
         q.set("service_id", String(Number(form.serviceId)));
-        if (rec?.km != null) q.set("interval_km", String(rec.km));
+        if (rec?.km != null) {
+            const u = normalizeOdometerUnit(vehicleUnit);
+            const kmForDb = u === "mi" ? Math.round(rec.km * 1.609344) : rec.km;
+            q.set("interval_km", String(kmForDb));
+        }
         if (rec?.days != null) q.set("interval_days", String(rec.days));
         if (form.cost) q.set("cost", form.cost);
         if (form.notes) q.set("notes", form.notes);
@@ -119,7 +132,7 @@ const AddServiceModal = ({ vehicleId, allServices, existingServiceIds, onClose }
                             >
                                 <option value="">اختر التكرار</option>
                                 {RECURRENCE_OPTIONS.map(o => (
-                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                    <option key={o.value} value={o.value}>{recurrenceLabel(o, vehicleUnit)}</option>
                                 ))}
                             </select>
                         </div>
@@ -207,8 +220,19 @@ const DeleteSheet = ({ vsId, serviceName, onClose }) => {
 
 // ─── Service Row ─────────────────────────────────────────────────────────────
 
-const ServiceRow = ({ vs, allServices, onDelete }) => {
+const ServiceRow = ({ vs, allServices, onDelete, unit = "km" }) => {
     const service = allServices.find((s) => s.id === vs.serviceId);
+    const u = normalizeOdometerUnit(unit);
+    const rec = RECURRENCE_OPTIONS.find((o) => {
+        if (o.days && o.days === vs.intervalDays) return true;
+        if (!vs.intervalKm && !vs.intervalDays && o.value === "once") return true;
+        if (!o.km || !vs.intervalKm) return false;
+        if (u === "mi") {
+            const expected = Math.round(o.km * 1.609344);
+            return Math.abs(expected - vs.intervalKm) <= 2;
+        }
+        return o.km === vs.intervalKm;
+    });
 
     return (
         <div className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
@@ -218,14 +242,7 @@ const ServiceRow = ({ vs, allServices, onDelete }) => {
             <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900 text-sm">{service?.nameAr}</p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                    {(() => {
-                        const rec = RECURRENCE_OPTIONS.find(o =>
-                            (o.km && o.km === vs.intervalKm) ||
-                            (o.days && o.days === vs.intervalDays) ||
-                            (!vs.intervalKm && !vs.intervalDays && o.value === "once")
-                        );
-                        return rec ? <span className="text-xs text-gray-400">{rec.label}</span> : null;
-                    })()}
+                    {rec && <span className="text-xs text-gray-400">{recurrenceLabel(rec, unit)}</span>}
                     {vs.cost && <span className="text-xs text-gray-400">&bull; {vs.cost} ر.س</span>}
                     {vs.notes && <span className="text-xs text-gray-300">&bull; {vs.notes}</span>}
                 </div>
@@ -278,6 +295,7 @@ const VehicleSection = ({ vehicle, vehicleServicesList, allServices, onAddServic
                             vs={vs}
                             allServices={allServices}
                             onDelete={onDelete}
+                            unit={vehicle.unit || "km"}
                         />
                     ))
                 )}
@@ -289,6 +307,7 @@ const VehicleSection = ({ vehicle, vehicleServicesList, allServices, onAddServic
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Services({ vehicles = [], services = [], vehicleServices = [], defaultVehicleId = null }) {
+    const servicesDisplay = useMemo(() => enrichServices(services), [services]);
     const [modalVehicleId, setModalVehicleId] = useState(
         defaultVehicleId ? Number(defaultVehicleId) : null
     );
@@ -330,7 +349,7 @@ export default function Services({ vehicles = [], services = [], vehicleServices
                                         key={vehicle.id}
                                         vehicle={vehicle}
                                         vehicleServicesList={vehicleServices.filter((vs) => vs.vehicleId === vehicle.id)}
-                                        allServices={services}
+                                        allServices={servicesDisplay}
                                         onAddService={(vid) => setModalVehicleId(vid)}
                                         onDelete={(id, name) => setDeleteTarget({ id, name })}
                                     />
@@ -344,7 +363,8 @@ export default function Services({ vehicles = [], services = [], vehicleServices
             {modalVehicleId !== null && modalVehicle && (
                 <AddServiceModal
                     vehicleId={modalVehicleId}
-                    allServices={services}
+                    vehicleUnit={modalVehicle.unit || "km"}
+                    allServices={servicesDisplay}
                     existingServiceIds={existingServiceIds}
                     onClose={() => setModalVehicleId(null)}
                 />

@@ -1,0 +1,1 @@
+function r(n){if(n==null||n==="")return"km";const i=String(n).trim().toLowerCase();return i==="mi"||i==="mil"||i==="mile"||i==="miles"?"mi":"km"}function e(n,i){return r(n)==="mi"?i?"ميل":"mi":i?"كم":"km"}export{r as n,e as o};

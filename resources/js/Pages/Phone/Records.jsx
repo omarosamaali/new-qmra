@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Head, router, usePage } from "@inertiajs/react";
+import { enrichServices } from "../../data/serviceCatalog";
 
 const BackIcon = () => (
     <svg viewBox="0 0 24 24" fill="currentColor" className="w-9 h-9">
@@ -56,6 +57,7 @@ const RecordCard = ({ record, vehicles, services }) => {
 };
 
 export default function Records({ vehicles = [], services = [], records = [], defaultServiceId = null, defaultVehicleId = null }) {
+    const servicesDisplay = useMemo(() => enrichServices(services), [services]);
     const [selectedServiceId, setSelectedServiceId] = useState(
         defaultServiceId ? Number(defaultServiceId) : null
     );
@@ -119,7 +121,7 @@ export default function Records({ vehicles = [], services = [], records = [], de
                                     <button onClick={() => setSelectedServiceId(null)} className={filterBtnClass(selectedServiceId === null)}>
                                         الكل
                                     </button>
-                                    {services.map((s) => (
+                                    {servicesDisplay.map((s) => (
                                         <button
                                             key={s.id}
                                             onClick={() => setSelectedServiceId((prev) => prev === s.id ? null : s.id)}
@@ -141,7 +143,7 @@ export default function Records({ vehicles = [], services = [], records = [], de
                             ) : (
                                 <div className="space-y-3">
                                     {filteredRecords.map((record) => (
-                                        <RecordCard key={record.id} record={record} vehicles={vehicles} services={services} />
+                                        <RecordCard key={record.id} record={record} vehicles={vehicles} services={servicesDisplay} />
                                     ))}
                                 </div>
                             )}

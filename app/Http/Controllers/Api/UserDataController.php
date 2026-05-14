@@ -46,6 +46,7 @@ class UserDataController extends Controller
             'color'               => '#800000',
             'registration_expiry' => $request->registration_expiry ?: null,
             'insurance_expiry'    => $request->insurance_expiry    ?: null,
+            'notes'               => $request->filled('notes') ? trim((string) $request->notes) : null,
         ]);
 
         return response()->json(['vehicle' => $vehicle]);
@@ -64,6 +65,9 @@ class UserDataController extends Controller
             'year'                => $request->has('year') ? (int) $request->year : $vehicle->year,
             'registration_expiry' => $request->has('registration_expiry') ? ($request->registration_expiry ?: null) : $vehicle->registration_expiry,
             'insurance_expiry'    => $request->has('insurance_expiry')    ? ($request->insurance_expiry    ?: null) : $vehicle->insurance_expiry,
+            'notes'               => $request->has('notes')
+                ? ($request->input('notes') === null || $request->input('notes') === '' ? null : trim((string) $request->input('notes')))
+                : $vehicle->notes,
         ]);
         return response()->json(['vehicle' => $vehicle->fresh()]);
     }

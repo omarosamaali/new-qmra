@@ -23,9 +23,9 @@
     --sar: env(safe-area-inset-right,  0px);
 }
 
-/* Apply to sticky/fixed headers so they extend behind status bar */
+/* Apply to sticky/fixed headers so they clear status bar (fallback when env inset is 0 in WebView) */
 .safe-header {
-    padding-top: var(--sat);
+    padding-top: max(2.75rem, calc(env(safe-area-inset-top, 0px) + 1.5rem));
 }
 
 /* Apply to fixed bottom actions so they clear the home indicator */
@@ -45,6 +45,40 @@
 /* For bottom-fixed bars the content should add bottom inset automatically */
 .pb-safe {
     padding-bottom: max(var(--sab), 1rem);
+}
+
+/*
+ * Scroll areas whose last content sits above the system nav bar.
+ * Android WebView often exposes safe-area-inset-bottom as 0; use a minimum (~56px) anyway.
+ */
+.pb-safe-nav {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + max(3.5rem, 56px, min(22dvh, 140px)));
+}
+
+/* Sticky footers / drawers above gesture nav when env inset is 0 */
+.safe-nav-spacer {
+    padding-bottom: max(3.25rem, calc(env(safe-area-inset-bottom, 0px) + 2rem), min(24dvh, 120px));
+}
+
+/* Full-height side drawers: avoid 100vh underlap on Android system bars */
+.drawer-panel-safe {
+    height: 100dvh;
+    max-height: 100dvh;
+}
+
+/* Drawer black header: extra top clearance for status bar */
+.drawer-header-safe {
+    padding-top: max(3rem, calc(env(safe-area-inset-top, 0px) + 1.75rem), min(14dvh, 88px));
+}
+
+/* Drawer bottom actions */
+.drawer-footer-safe {
+    padding-bottom: max(3.25rem, calc(env(safe-area-inset-bottom, 0px) + 2rem), min(24dvh, 120px));
+}
+
+/* FAB / fixed controls above Android nav when inset is 0 */
+.bottom-fab-safe {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + max(1.5rem, 56px));
 }
 
 /* Leaflet map z-index fix inside dashboard */

@@ -2,17 +2,15 @@
  * NativePHP / Android WebView injects ReminderBridge for AlarmManager-based notifications.
  * `window.Notification` in WebView is often missing, disabled, or only works while the app is open.
  */
+import { parseYmdHmLocal } from "./datetime";
+
 export const hasReminderBridge = () =>
     typeof window !== "undefined" &&
     window.ReminderBridge &&
     typeof window.ReminderBridge.scheduleReminder === "function" &&
     typeof window.ReminderBridge.cancelReminder === "function";
 
-const atNineLocal = (dateStr) => {
-    if (!dateStr) return null;
-    const d = new Date(`${dateStr}T09:00:00`);
-    return Number.isNaN(d.getTime()) ? null : d;
-};
+const atNineLocal = (dateStr) => parseYmdHmLocal(dateStr, "09:00");
 
 /**
  * Cancel orphan alarms (removed vehicle/warranty), then schedule 09:00 on each future expiry.

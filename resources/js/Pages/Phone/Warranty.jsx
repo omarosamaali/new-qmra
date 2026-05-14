@@ -402,7 +402,7 @@ export default function Warranty({ vehicles = [], warranties = [], defaultVehicl
                     </div>
 
                     <div className="flex-1 overflow-y-auto no-scrollbar">
-                        <div className="px-4 pt-4 space-y-4" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 5rem), 6.5rem)" }}>
+                        <div className="px-4 pt-4 space-y-4 pb-safe-nav">
                             {vehicles.length === 0 ? (
                                 <p className="text-sm text-gray-400 text-center py-16">
                                     {t("لا توجد مركبات — أضف مركبة أولاً", "No vehicles — add one first")}

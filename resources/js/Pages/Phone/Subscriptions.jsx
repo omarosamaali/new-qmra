@@ -159,7 +159,7 @@ export default function Subscriptions({ packages = [], subscription = null, sess
                     )}
 
                     <div className="flex-1 overflow-y-auto no-scrollbar">
-                        <div className="px-4 pt-5 space-y-4" style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 1.5rem), 2.5rem)" }}>
+                        <div className="px-4 pt-5 space-y-4 pb-safe-nav">
 
                             {error && (
                                 <div className="bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
