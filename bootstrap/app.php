@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'subscribed' => CheckSubscription::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            '*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Inertia XHR requests are "ajax" and may match expectsJson(); force validation
