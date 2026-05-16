@@ -7,6 +7,14 @@ import { brandsData } from "../Components/BrandsData";
 import { logoDark, logoLight, iconFav } from "../brand/assets";
 import { normalizeOdometerUnit, odometerSuffix } from "../utils/units";
 import { hasReminderBridge, reconcileExpiryAlarms } from "../utils/nativeReminders";
+import {
+    ensureNativeCameraPermission,
+    hasImagePickerBridge,
+    isNativeWebView,
+    openNativeAppSettings,
+    pickQrImageNative,
+} from "../utils/nativeCamera";
+import { decodeQrFromDataUrl, decodeQrFromImageFile } from "../utils/qrScan";
 import { enrichServices, resolveServiceIcon } from "../data/serviceCatalog";
 import { parseYmdLocal, startOfLocalToday, dayDiffFromLocalToday } from "../utils/datetime";
 // ─── Menu Drawer ──────────────────────────────────────────────────────────────
@@ -368,10 +376,12 @@ const VehicleViewSheet = ({ vehicle, addonsLimit, linkedCount, onClose, onLinked
     const [loading, setLoading]   = useState(false);
     const [error, setError]       = useState("");
     const [success, setSuccess]   = useState(false);
-    const videoRef  = useRef(null);
-    const canvasRef = useRef(null);
-    const streamRef = useRef(null);
-    const rafRef    = useRef(null);
+    const [photoBusy, setPhotoBusy] = useState(false);
+    const videoRef    = useRef(null);
+    const canvasRef   = useRef(null);
+    const streamRef   = useRef(null);
+    const rafRef      = useRef(null);
+    const photoInputRef = useRef(null);
 
     useEffect(() => {
         const id = requestAnimationFrame(() => setVisible(true));
@@ -396,6 +406,13 @@ const VehicleViewSheet = ({ vehicle, addonsLimit, linkedCount, onClose, onLinked
         if (!navigator.mediaDevices?.getUserMedia) {
             setError("تعذّر فتح الكاميرا من هذا العرض. أدخل الرمز يدوياً.");
             return;
+        }
+        if (hasImagePickerBridge()) {
+            const granted = await ensureNativeCameraPermission();
+            if (!granted) {
+                setError("يُرجى السماح بصلاحية الكاميرا من نافذة النظام، أو فتح إعدادات التطبيق.");
+                return;
+            }
         }
         try {
             // لا تستخدم permissions.query قبل getUserMedia: في WebView أندرويد قد يعيد
@@ -422,6 +439,66 @@ const VehicleViewSheet = ({ vehicle, addonsLimit, linkedCount, onClose, onLinked
             } else {
                 setError("تعذّر الوصول إلى الكاميرا. أدخل الرمز يدوياً.");
             }
+        }
+    };
+
+    const handleOpenCameraSettings = () => openNativeAppSettings();
+
+    const handlePhotoQr = async (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        setError("");
+        setPhotoBusy(true);
+        try {
+            const data = await decodeQrFromImageFile(file);
+            setCode(data);
+        } catch (err) {
+            if (err?.message === "no_qr") {
+                setError("لم يُعثر على رمز QR في الصورة. حاول مجدداً أو أدخل الرمز يدوياً.");
+            } else {
+                setError("تعذّر قراءة الصورة. حاول مجدداً.");
+            }
+        } finally {
+            setPhotoBusy(false);
+        }
+    };
+
+    const handlePhotoCaptureClick = async () => {
+        setError("");
+        setPhotoBusy(true);
+        try {
+            if (isNativeWebView() && hasImagePickerBridge()) {
+                const dataUrl = await pickQrImageNative();
+                const data = await decodeQrFromDataUrl(dataUrl);
+                setCode(data);
+                return;
+            }
+
+            const granted = await ensureNativeCameraPermission();
+            if (!granted) {
+                setError("يُرجى السماح بصلاحية الكاميرا من نافذة النظام، أو فتح إعدادات التطبيق.");
+                return;
+            }
+
+            photoInputRef.current?.click();
+        } catch (err) {
+            if (err?.message === "cancelled") {
+                return;
+            }
+            if (err?.message === "permission_denied") {
+                setError("صلاحية الكاميرا مطلوبة. افتح إعدادات التطبيق وامنح صلاحية الكاميرا.");
+            } else if (err?.message === "no_bridge") {
+                setError("يُرجى تحديث التطبيق لآخر إصدار لاستخدام الكاميرا.");
+            } else if (err?.message === "no_qr") {
+                setError("لم يُعثر على رمز QR في الصورة. حاول مجدداً أو أدخل الرمز يدوياً.");
+            } else if (err?.message === "timeout") {
+                setError("انتهت المهلة. حاول مجدداً.");
+            } else {
+                setError("تعذّر فتح الكاميرا. حاول مجدداً أو أدخل الرمز يدوياً.");
+            }
+        } finally {
+            setPhotoBusy(false);
         }
     };
 
@@ -536,6 +613,14 @@ const VehicleViewSheet = ({ vehicle, addonsLimit, linkedCount, onClose, onLinked
                                 </p>
 
                                 {/* QR Scanner */}
+                                <input
+                                    ref={photoInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    className="hidden"
+                                    onChange={handlePhotoQr}
+                                />
                                 {scanning ? (
                                     <div className="relative rounded-2xl overflow-hidden bg-black">
                                         <video ref={videoRef} className="w-full rounded-2xl" playsInline muted />
@@ -549,13 +634,40 @@ const VehicleViewSheet = ({ vehicle, addonsLimit, linkedCount, onClose, onLinked
                                         </button>
                                     </div>
                                 ) : (
-                                    <button onClick={startCamera}
-                                        className="w-full flex items-center justify-center gap-2 bg-gray-50 border border-dashed border-gray-300 rounded-2xl py-4 text-sm font-medium text-gray-600 active:bg-gray-100">
-                                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                                            <path d="M3 3h6v6H3zm2 2v2h2V5zm10-2h6v6h-6zm2 2v2h2V5zM3 15h6v6H3zm2 2v2h2v-2zm10 0h2v2h-2zm2-2h2v2h-2zm0 4h2v2h-2zm-4-4h2v2h-2zm0 4h2v2h-2zm2-2h2v2h-2z"/>
-                                        </svg>
-                                        امسح رمز QR
-                                    </button>
+                                    <div className="space-y-2">
+                                        <button
+                                            type="button"
+                                            onClick={handlePhotoCaptureClick}
+                                            disabled={photoBusy}
+                                            className="w-full flex items-center justify-center gap-2 bg-[#800000] text-white rounded-2xl py-4 text-sm font-semibold active:opacity-90 disabled:opacity-60"
+                                        >
+                                            {photoBusy ? (
+                                                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                                </svg>
+                                            ) : (
+                                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                                    <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm0 2c-2.8 0-5.2 1.5-6.5 3.7l1.3.8C7.8 19.6 9.8 18.5 12 18.5s4.2 1.1 5.2 2.5l1.3-.8C17.2 19 14.8 17.5 12 17.5zM9 4 7.5 6H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-3.5L15 4H9z"/>
+                                                </svg>
+                                            )}
+                                            {photoBusy
+                                                ? "جاري الفتح..."
+                                                : (isNativeWebView() ? "التقط صورة لرمز QR" : "اختر صورة لرمز QR")}
+                                        </button>
+                                        {!isNativeWebView() && (
+                                            <button
+                                                type="button"
+                                                onClick={startCamera}
+                                                className="w-full flex items-center justify-center gap-2 bg-gray-50 border border-dashed border-gray-300 rounded-2xl py-3.5 text-sm font-medium text-gray-600 active:bg-gray-100"
+                                            >
+                                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                                    <path d="M3 3h6v6H3zm2 2v2h2V5zm10-2h6v6h-6zm2 2v2h2V5zM3 15h6v6H3zm2 2v2h2v-2zm10 0h2v2h-2zm2-2h2v2h-2zm0 4h2v2h-2zm-4-4h2v2h-2zm0 4h2v2h-2zm2-2h2v2h-2z"/>
+                                                </svg>
+                                                مسح مباشر بالكاميرا
+                                            </button>
+                                        )}
+                                    </div>
                                 )}
 
                                 {/* Manual code entry */}
@@ -571,7 +683,20 @@ const VehicleViewSheet = ({ vehicle, addonsLimit, linkedCount, onClose, onLinked
                                     />
                                 </div>
 
-                                {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+                                {error && (
+                                    <div className="space-y-2">
+                                        <p className="text-red-500 text-xs text-center">{error}</p>
+                                        {isNativeWebView() && (error.includes("محظورة") || error.includes("صلاحية") || error.includes("QR")) && (
+                                            <button
+                                                type="button"
+                                                onClick={handleOpenCameraSettings}
+                                                className="w-full text-[#800000] text-xs font-semibold underline"
+                                            >
+                                                فتح إعدادات التطبيق
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
 
                                 <button onClick={handleLink} disabled={loading || !code.trim()}
                                     className={`w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${

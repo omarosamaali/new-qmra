@@ -2,6 +2,7 @@
     "namespace": "QmraReminders",
     "android": {
         "permissions": [
+            "android.permission.CAMERA",
             "android.permission.POST_NOTIFICATIONS",
             "android.permission.WAKE_LOCK",
             "android.permission.VIBRATE"

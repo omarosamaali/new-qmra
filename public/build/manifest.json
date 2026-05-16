@@ -11,19 +11,16 @@
     "file": "assets/datetime-DvQhbHaj.js",
     "name": "datetime"
   },
-  "_language-CPMb_CWV.js": {
-    "file": "assets/language-CPMb_CWV.js",
+  "_language-C-vpG4Ga.js": {
+    "file": "assets/language-C-vpG4Ga.js",
     "name": "language",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_nativeReminders-Ca4LMsa1.js": {
-    "file": "assets/nativeReminders-Ca4LMsa1.js",
-    "name": "nativeReminders",
-    "imports": [
-      "_datetime-DvQhbHaj.js"
-    ]
+  "_nativeReminders-Dt0ZS_Gv.js": {
+    "file": "assets/nativeReminders-Dt0ZS_Gv.js",
+    "name": "nativeReminders"
   },
   "_serviceCatalog-C6W9zzDb.js": {
     "file": "assets/serviceCatalog-C6W9zzDb.js",
@@ -34,7 +31,7 @@
     "name": "units"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CcWe6F_M.css",
+    "file": "assets/app-B71o0C5n.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -47,7 +44,7 @@
     "src": "resources/images/qmra-logo-light.svg"
   },
   "resources/js/Pages/Auth/ForgotPassword.jsx": {
-    "file": "assets/ForgotPassword-D6GayQsW.js",
+    "file": "assets/ForgotPassword-tRoftERI.js",
     "name": "ForgotPassword",
     "src": "resources/js/Pages/Auth/ForgotPassword.jsx",
     "isDynamicEntry": true,
@@ -57,7 +54,7 @@
     ]
   },
   "resources/js/Pages/Auth/Login.jsx": {
-    "file": "assets/Login-FWPNfWVW.js",
+    "file": "assets/Login-DPQnEYqS.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.jsx",
     "isDynamicEntry": true,
@@ -67,7 +64,7 @@
     ]
   },
   "resources/js/Pages/Auth/Register.jsx": {
-    "file": "assets/Register-LLyqkQDH.js",
+    "file": "assets/Register-CFqWPOYZ.js",
     "name": "Register",
     "src": "resources/js/Pages/Auth/Register.jsx",
     "isDynamicEntry": true,
@@ -77,17 +74,17 @@
     ]
   },
   "resources/js/Pages/Home.jsx": {
-    "file": "assets/Home-DRC0QpUe.js",
+    "file": "assets/Home-4PHz3gY6.js",
     "name": "Home",
     "src": "resources/js/Pages/Home.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_language-CPMb_CWV.js",
+      "_language-C-vpG4Ga.js",
       "_BrandsData-DOi_JurZ.js",
       "_assets-C8PwiRtL.js",
       "_units-DGt1GwHo.js",
-      "_nativeReminders-Ca4LMsa1.js",
+      "_nativeReminders-Dt0ZS_Gv.js",
       "_serviceCatalog-C6W9zzDb.js",
       "_datetime-DvQhbHaj.js"
     ],
@@ -97,7 +94,7 @@
     ]
   },
   "resources/js/Pages/Phone/About.jsx": {
-    "file": "assets/About-Zmh-U2Qm.js",
+    "file": "assets/About-CQzDOKC5.js",
     "name": "About",
     "src": "resources/js/Pages/Phone/About.jsx",
     "isDynamicEntry": true,
@@ -107,17 +104,18 @@
     ]
   },
   "resources/js/Pages/Phone/Add.jsx": {
-    "file": "assets/Add-DXrzHM5r.js",
+    "file": "assets/Add-Cos7Nh7t.js",
     "name": "Add",
     "src": "resources/js/Pages/Phone/Add.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_language-CPMb_CWV.js"
+      "_language-C-vpG4Ga.js",
+      "_nativeReminders-Dt0ZS_Gv.js"
     ]
   },
   "resources/js/Pages/Phone/AddService.jsx": {
-    "file": "assets/AddService-DplDOi8G.js",
+    "file": "assets/AddService-CN-s1sK6.js",
     "name": "AddService",
     "src": "resources/js/Pages/Phone/AddService.jsx",
     "isDynamicEntry": true,
@@ -128,7 +126,7 @@
     ]
   },
   "resources/js/Pages/Phone/AddVehicle.jsx": {
-    "file": "assets/AddVehicle-WpkyxB_p.js",
+    "file": "assets/AddVehicle-DFSpp4i8.js",
     "name": "AddVehicle",
     "src": "resources/js/Pages/Phone/AddVehicle.jsx",
     "isDynamicEntry": true,
@@ -139,7 +137,7 @@
     ]
   },
   "resources/js/Pages/Phone/Contact.jsx": {
-    "file": "assets/Contact-CkxWuO0v.js",
+    "file": "assets/Contact-kRq2utNs.js",
     "name": "Contact",
     "src": "resources/js/Pages/Phone/Contact.jsx",
     "isDynamicEntry": true,
@@ -148,7 +146,7 @@
     ]
   },
   "resources/js/Pages/Phone/Notes.jsx": {
-    "file": "assets/Notes-D9mH5lN3.js",
+    "file": "assets/Notes-B0MK2mJD.js",
     "name": "Notes",
     "src": "resources/js/Pages/Phone/Notes.jsx",
     "isDynamicEntry": true,
@@ -158,7 +156,7 @@
     ]
   },
   "resources/js/Pages/Phone/Profile.jsx": {
-    "file": "assets/Profile-7QTzKdyV.js",
+    "file": "assets/Profile-C1IQ6i5n.js",
     "name": "Profile",
     "src": "resources/js/Pages/Phone/Profile.jsx",
     "isDynamicEntry": true,
@@ -167,7 +165,7 @@
     ]
   },
   "resources/js/Pages/Phone/Records.jsx": {
-    "file": "assets/Records-Cg309yOw.js",
+    "file": "assets/Records-DVIeAFRo.js",
     "name": "Records",
     "src": "resources/js/Pages/Phone/Records.jsx",
     "isDynamicEntry": true,
@@ -177,19 +175,19 @@
     ]
   },
   "resources/js/Pages/Phone/Reminders.jsx": {
-    "file": "assets/Reminders-B-ZMwtXp.js",
+    "file": "assets/Reminders-SMDa5OGj.js",
     "name": "Reminders",
     "src": "resources/js/Pages/Phone/Reminders.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_nativeReminders-Ca4LMsa1.js",
-      "_language-CPMb_CWV.js",
+      "_nativeReminders-Dt0ZS_Gv.js",
+      "_language-C-vpG4Ga.js",
       "_datetime-DvQhbHaj.js"
     ]
   },
   "resources/js/Pages/Phone/Services.jsx": {
-    "file": "assets/Services-CunrcZME.js",
+    "file": "assets/Services-CRKyvKqB.js",
     "name": "Services",
     "src": "resources/js/Pages/Phone/Services.jsx",
     "isDynamicEntry": true,
@@ -200,7 +198,7 @@
     ]
   },
   "resources/js/Pages/Phone/Subscriptions.jsx": {
-    "file": "assets/Subscriptions-tzr8g6X9.js",
+    "file": "assets/Subscriptions-VpI6yPv4.js",
     "name": "Subscriptions",
     "src": "resources/js/Pages/Phone/Subscriptions.jsx",
     "isDynamicEntry": true,
@@ -209,7 +207,7 @@
     ]
   },
   "resources/js/Pages/Phone/Terms.jsx": {
-    "file": "assets/Terms-DKO3p16B.js",
+    "file": "assets/Terms-DqOiXmq9.js",
     "name": "Terms",
     "src": "resources/js/Pages/Phone/Terms.jsx",
     "isDynamicEntry": true,
@@ -218,7 +216,7 @@
     ]
   },
   "resources/js/Pages/Phone/Vehicles.jsx": {
-    "file": "assets/Vehicles-D9C3RPe7.js",
+    "file": "assets/Vehicles-Ce4wna9y.js",
     "name": "Vehicles",
     "src": "resources/js/Pages/Phone/Vehicles.jsx",
     "isDynamicEntry": true,
@@ -229,17 +227,17 @@
     ]
   },
   "resources/js/Pages/Phone/Warranty.jsx": {
-    "file": "assets/Warranty-DSOx6h6x.js",
+    "file": "assets/Warranty-CYBgQkSd.js",
     "name": "Warranty",
     "src": "resources/js/Pages/Phone/Warranty.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_language-CPMb_CWV.js"
+      "_language-C-vpG4Ga.js"
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-D_Jqh6Cn.js",
+    "file": "assets/app-Bb16EeIT.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -264,7 +262,7 @@
       "resources/js/Pages/Phone/Warranty.jsx"
     ],
     "css": [
-      "assets/app-CcWe6F_M.css"
+      "assets/app-B71o0C5n.css"
     ]
   }
 }
