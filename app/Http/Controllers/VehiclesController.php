@@ -43,7 +43,7 @@ class VehiclesController extends Controller
         $request->validate([
             'plate_number' => 'required|string',
             'brand' => 'required|string',
-        'year' => 'required|integer|digits:4|min:1000|max:'.((int) date('Y') + 2),
+            'year' => 'required|integer|digits:4|min:1000|max:'.((int) date('Y') + 2),
             'km' => 'required|integer|min:0',
         ], [
             'plate_number.required' => 'رقم اللوحة مطلوب.',
